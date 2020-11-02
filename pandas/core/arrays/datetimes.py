@@ -691,10 +691,7 @@ class DatetimeArray(dtl.TimelikeOps, dtl.DatelikeOps):
 
         assert not isinstance(offset, Tick)
         try:
-            if self.tz is not None:
-                values = self.tz_localize(None)
-            else:
-                values = self
+            values = self.tz_localize(None) if self.tz is not None else self
             result = offset._apply_array(values)
             result = DatetimeArray._simple_new(result)
             result = result.tz_localize(self.tz)

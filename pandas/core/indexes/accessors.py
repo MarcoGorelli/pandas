@@ -78,10 +78,7 @@ class Properties(PandasDelegate, PandasObject, NoNewAttributesMixin):
 
         result = np.asarray(result)
 
-        if self.orig is not None:
-            index = self.orig.index
-        else:
-            index = self._parent.index
+        index = self.orig.index if self.orig is not None else self._parent.index
         # return the result as a Series, which is by definition a copy
         result = Series(result, index=index, name=self.name).__finalize__(self._parent)
 

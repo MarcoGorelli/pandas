@@ -205,11 +205,7 @@ class FrameApply(metaclass=abc.ABCMeta):
                 should_reduce = not isinstance(r, Series)
 
         if should_reduce:
-            if len(self.agg_axis):
-                r = self.f(Series([], dtype=np.float64))
-            else:
-                r = np.nan
-
+            r = self.f(Series([], dtype=np.float64)) if len(self.agg_axis) else np.nan
             return self.obj._constructor_sliced(r, index=self.agg_axis)
         else:
             return self.obj.copy()
@@ -377,9 +373,10 @@ class FrameRowApply(FrameApply):
             else:
                 raise
 
-        if not isinstance(results[0], ABCSeries):
-            if len(result.index) == len(self.res_columns):
-                result.index = self.res_columns
+        if not isinstance(results[0], ABCSeries) and len(result.index) == len(
+            self.res_columns
+        ):
+            result.index = self.res_columns
 
         if len(result.columns) == len(res_index):
             result.columns = res_index

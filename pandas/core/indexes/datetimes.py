@@ -425,12 +425,13 @@ class DatetimeIndex(DatetimeTimedeltaMixin):
         this = self
 
         if isinstance(other, DatetimeIndex):
-            if self.tz is not None:
-                if other.tz is None:
-                    raise TypeError("Cannot join tz-naive with tz-aware DatetimeIndex")
-            elif other.tz is not None:
+            if (
+                self.tz is not None
+                and other.tz is None
+                or self.tz is None
+                and other.tz is not None
+            ):
                 raise TypeError("Cannot join tz-naive with tz-aware DatetimeIndex")
-
             if not timezones.tz_compare(self.tz, other.tz):
                 this = self.tz_convert("UTC")
                 other = other.tz_convert("UTC")
@@ -547,10 +548,7 @@ class DatetimeIndex(DatetimeTimedeltaMixin):
             if not freq.is_on_offset(s):
                 t0 = freq.rollback(s)
                 t1 = freq.rollforward(s)
-                if abs(s - t0) < abs(t1 - s):
-                    s = t0
-                else:
-                    s = t1
+                s = t0 if abs(s - t0) < abs(t1 - s) else t1
             snapped[i] = s
 
         dta = DatetimeArray(snapped, dtype=self.dtype)
@@ -758,8 +756,7 @@ class DatetimeIndex(DatetimeTimedeltaMixin):
         freq = getattr(self, "freqstr", getattr(self, "inferred_freq", None))
         parsed, reso = parsing.parse_time_string(key, freq)
         reso = Resolution.from_attrname(reso)
-        loc = self._partial_date_slice(reso, parsed)
-        return loc
+        return self._partial_date_slice(reso, parsed)
 
     def slice_indexer(self, start=None, end=None, step=None, kind=None):
         """
@@ -822,7 +819,7 @@ class DatetimeIndex(DatetimeTimedeltaMixin):
     # --------------------------------------------------------------------
 
     def is_type_compatible(self, typ) -> bool:
-        return typ == self.inferred_type or typ == "datetime"
+        return typ in [self.inferred_type, "datetime"]
 
     @property
     def inferred_type(self) -> str:
@@ -911,11 +908,7 @@ class DatetimeIndex(DatetimeTimedeltaMixin):
         else:
             lop = rop = operator.lt
 
-        if start_time <= end_time:
-            join_op = operator.and_
-        else:
-            join_op = operator.or_
-
+        join_op = operator.and_ if start_time <= end_time else operator.or_
         mask = join_op(lop(start_micros, time_micros), rop(time_micros, end_micros))
 
         return mask.nonzero()[0]

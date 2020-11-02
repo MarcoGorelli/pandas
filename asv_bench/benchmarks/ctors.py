@@ -14,7 +14,7 @@ def list_of_str(arr):
 
 
 def gen_of_str(arr):
-    return (x for x in arr.astype(str))
+    return iter(arr.astype(str))
 
 
 def arr_dict(arr):
@@ -71,10 +71,7 @@ class SeriesConstructors:
                 "Series constructors do not support using generators with indexes"
             )
         N = 10 ** 4
-        if dtype == "float":
-            arr = np.random.randn(N)
-        else:
-            arr = np.arange(N)
+        arr = np.random.randn(N) if dtype == "float" else np.arange(N)
         self.data = data_fmt(arr)
         self.index = np.arange(N) if with_index else None
 

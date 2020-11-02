@@ -53,8 +53,7 @@ class TimedeltaConstructor:
 
 class TimedeltaProperties:
     def setup_cache(self):
-        td = Timedelta(days=365, minutes=35, seconds=25, milliseconds=35)
-        return td
+        return Timedelta(days=365, minutes=35, seconds=25, milliseconds=35)
 
     def time_timedelta_days(self, td):
         td.days

@@ -665,11 +665,7 @@ class DatetimeLikeArrayMixin(OpsMixin, NDArrayBackedExtensionArray):
         """
         from pandas import Index, Series
 
-        if dropna:
-            values = self[~self.isna()]._ndarray
-        else:
-            values = self._ndarray
-
+        values = self[~self.isna()]._ndarray if dropna else self._ndarray
         cls = type(self)
 
         result = value_counts(values, sort=False, dropna=dropna)
@@ -1064,8 +1060,7 @@ class DatetimeLikeArrayMixin(OpsMixin, NDArrayBackedExtensionArray):
             if isinstance(freq, str):
                 freq = to_offset(freq)
             offset = periods * freq
-            result = self + offset
-            return result
+            return self + offset
 
         if periods == 0 or len(self) == 0:
             # GH#14811 empty case
@@ -1535,10 +1530,9 @@ class TimelikeOps(DatetimeLikeArrayMixin):
             self = cast("DatetimeArray", self)
             naive = self.tz_localize(None)
             result = naive._round(freq, mode, ambiguous, nonexistent)
-            aware = result.tz_localize(
+            return result.tz_localize(
                 self.tz, ambiguous=ambiguous, nonexistent=nonexistent
             )
-            return aware
 
         values = self.view("i8")
         result = round_nsint64(values, mode, freq)

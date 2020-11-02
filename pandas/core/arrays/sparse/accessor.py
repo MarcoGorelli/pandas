@@ -359,15 +359,8 @@ class SparseFrameAccessor(BaseAccessor, PandasDelegate):
         import pandas.core.indexes.base as ibase
 
         N, K = data.shape
-        if index is None:
-            index = ibase.default_index(N)
-        else:
-            index = ensure_index(index)
-        if columns is None:
-            columns = ibase.default_index(K)
-        else:
-            columns = ensure_index(columns)
-
+        index = ibase.default_index(N) if index is None else ensure_index(index)
+        columns = ibase.default_index(K) if columns is None else ensure_index(columns)
         if len(columns) != K:
             raise ValueError(f"Column length mismatch: {len(columns)} vs. {K}")
         if len(index) != N:

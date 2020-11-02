@@ -32,7 +32,7 @@ class ConcatDateCols:
         count_elem = 10000
         if dim == 1:
             self.object = (np.array([value] * count_elem),)
-        if dim == 2:
+        elif dim == 2:
             self.object = (
                 np.array([value] * count_elem),
                 np.array([value] * count_elem),

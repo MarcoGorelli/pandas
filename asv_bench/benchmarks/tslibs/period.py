@@ -71,10 +71,7 @@ class PeriodConstructor:
     param_names = ["freq", "is_offset"]
 
     def setup(self, freq, is_offset):
-        if is_offset:
-            self.freq = to_offset(freq)
-        else:
-            self.freq = freq
+        self.freq = to_offset(freq) if is_offset else freq
 
     def time_period_constructor(self, freq, is_offset):
         Period("2012-06-01", freq=freq)

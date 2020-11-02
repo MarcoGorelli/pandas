@@ -176,8 +176,7 @@ class Resampler(BaseGroupBy, ShallowMixin):
         -------
         obj : converted object
         """
-        obj = obj._consolidate()
-        return obj
+        return obj._consolidate()
 
     def _get_binner_for_time(self):
         raise AbstractMethodError(self)
@@ -877,10 +876,7 @@ class Resampler(BaseGroupBy, ShallowMixin):
         if not len(self.ax):
             from pandas import Series
 
-            if self._selected_obj.ndim == 1:
-                name = self._selected_obj.name
-            else:
-                name = None
+            name = self._selected_obj.name if self._selected_obj.ndim == 1 else None
             result = Series([], index=result.index, dtype="int64", name=name)
         return result
 
@@ -1042,12 +1038,14 @@ class DatetimeIndexResampler(Resampler):
             return obj
 
         # do we have a regular frequency
-        if ax.freq is not None or ax.inferred_freq is not None:
+        if (
+            (ax.freq is not None or ax.inferred_freq is not None)
+            and len(self.grouper.binlabels) > len(ax)
+            and how is None
+        ):
 
-            if len(self.grouper.binlabels) > len(ax) and how is None:
-
-                # let's do an asfreq
-                return self.asfreq()
+            # let's do an asfreq
+            return self.asfreq()
 
         # we are downsampling
         # we want to call the actual grouper method here
@@ -1062,11 +1060,7 @@ class DatetimeIndexResampler(Resampler):
 
         The range of a new index should not be outside specified range
         """
-        if self.closed == "right":
-            binner = binner[1:]
-        else:
-            binner = binner[:-1]
-        return binner
+        return binner[1:] if self.closed == "right" else binner[:-1]
 
     def _upsample(self, method, limit=None, fill_value=None):
         """

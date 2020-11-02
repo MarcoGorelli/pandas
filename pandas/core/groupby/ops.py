@@ -254,10 +254,7 @@ class BaseGrouper:
         """
         ids, _, ngroup = self.group_info
         ids = ensure_platform_int(ids)
-        if ngroup:
-            out = np.bincount(ids[ids != -1], minlength=ngroup)
-        else:
-            out = []
+        out = np.bincount(ids[ids != -1], minlength=ngroup) if ngroup else []
         return Series(out, index=self.result_index, dtype="int64")
 
     @cache_readonly
@@ -318,10 +315,9 @@ class BaseGrouper:
 
         codes = self.reconstructed_codes
         levels = [ping.result_index for ping in self.groupings]
-        result = MultiIndex(
+        return MultiIndex(
             levels=levels, codes=codes, verify_integrity=False, names=self.names
         )
-        return result
 
     def get_group_levels(self) -> List[Index]:
         if not self.compressed and len(self.groupings) == 1:

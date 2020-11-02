@@ -57,10 +57,11 @@ class DocBuilder:
             os.environ["SPHINX_PATTERN"] = "-api"
 
         self.single_doc_html = None
-        if single_doc and single_doc.endswith(".rst"):
-            self.single_doc_html = os.path.splitext(single_doc)[0] + ".html"
-        elif single_doc:
-            self.single_doc_html = f"reference/api/pandas.{single_doc}.html"
+        if single_doc:
+            if single_doc.endswith(".rst"):
+                self.single_doc_html = os.path.splitext(single_doc)[0] + ".html"
+            else:
+                self.single_doc_html = f"reference/api/pandas.{single_doc}.html"
 
     def _process_single_doc(self, single_doc):
         """
@@ -244,7 +245,7 @@ class DocBuilder:
             ret_code = self._sphinx_build("latex")
             os.chdir(os.path.join(BUILD_PATH, "latex"))
             if force:
-                for i in range(3):
+                for _ in range(3):
                     self._run_os("pdflatex", "-interaction=nonstopmode", "pandas.tex")
                 raise SystemExit(
                     "You should check the file "

@@ -60,10 +60,7 @@ def get_authors(revision_range):
         # e.g. v1.0.1|HEAD
         maybe_tag, head = cur_release.split("|")
         assert head == "HEAD"
-        if maybe_tag in this_repo.tags:
-            cur_release = maybe_tag
-        else:
-            cur_release = head
+        cur_release = maybe_tag if maybe_tag in this_repo.tags else head
         revision_range = f"{lst_release}..{cur_release}"
 
     # authors, in current release and previous to current release.
@@ -114,8 +111,7 @@ def get_pull_requests(repo, revision_range):
 
     # get PR data from github repo
     prnums.sort()
-    prs = [repo.get_pull(n) for n in prnums]
-    return prs
+    return [repo.get_pull(n) for n in prnums]
 
 
 def build_components(revision_range, heading="Contributors"):

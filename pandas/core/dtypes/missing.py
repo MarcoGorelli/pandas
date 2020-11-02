@@ -229,11 +229,7 @@ def _isna_ndarraylike(obj, inf_as_na: bool = False):
         # this is the NaT pattern
         result = values.view("i8") == iNaT
     else:
-        if inf_as_na:
-            result = ~np.isfinite(values)
-        else:
-            result = np.isnan(values)
-
+        result = ~np.isfinite(values) if inf_as_na else np.isnan(values)
     # box
     if isinstance(obj, ABCSeries):
         result = obj._constructor(result, index=obj.index, name=obj.name, copy=False)
@@ -358,8 +354,8 @@ def isna_compat(arr, fill_value=np.nan) -> bool:
     -------
     True if we can fill using this fill_value
     """
-    dtype = arr.dtype
     if isna(fill_value):
+        dtype = arr.dtype
         return not (is_bool_dtype(dtype) or is_integer_dtype(dtype))
     return True
 
@@ -447,9 +443,10 @@ def array_equivalent(
         right = right.view("i8")
 
     # if we have structured dtypes, compare first
-    if left.dtype.type is np.void or right.dtype.type is np.void:
-        if left.dtype != right.dtype:
-            return False
+    if (
+        left.dtype.type is np.void or right.dtype.type is np.void
+    ) and left.dtype != right.dtype:
+        return False
 
     return np.array_equal(left, right)
 
@@ -484,10 +481,10 @@ def _array_equivalent_object(left, right, strict_nan):
                 if np.any(np.asarray(left_value != right_value)):
                     return False
             except TypeError as err:
-                if "Cannot compare tz-naive" in str(err):
+                if "Cannot compare tz-naive" in str(
+                    err
+                ) or "boolean value of NA is ambiguous" in str(err):
                     # tzawareness compat failure, see GH#28507
-                    return False
-                elif "boolean value of NA is ambiguous" in str(err):
                     return False
                 raise
     return True
@@ -637,8 +634,7 @@ def isna_all(arr: ArrayLike) -> bool:
     else:
         checker = lambda x: _isna_ndarraylike(x, inf_as_na=INF_AS_NA)
 
-    for i in range(0, total_len, chunk_len):
-        if not checker(arr[i : i + chunk_len]).all():
-            return False
-
-    return True
+    return all(
+        checker(arr[i : i + chunk_len]).all()
+        for i in range(0, total_len, chunk_len)
+    )

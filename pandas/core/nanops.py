@@ -150,10 +150,7 @@ def _bn_ok_dtype(dtype: DtypeObj, name: str) -> bool:
         # further we also want to preserve NaN when all elements
         # are NaN, unlike bottleneck/numpy which consider this
         # to be 0
-        if name in ["nansum", "nanprod"]:
-            return False
-
-        return True
+        return name not in ["nansum", "nanprod"]
     return False
 
 
@@ -185,14 +182,11 @@ def _get_fill_value(
             else:
                 return -np.inf
     else:
-        if fill_value_typ is None:
-            return iNaT
+        if fill_value_typ is not None and fill_value_typ == "+inf":
+            # need the max int here
+            return np.iinfo(np.int64).max
         else:
-            if fill_value_typ == "+inf":
-                # need the max int here
-                return np.iinfo(np.int64).max
-            else:
-                return iNaT
+            return iNaT
 
 
 def _maybe_get_mask(
@@ -395,15 +389,12 @@ def _na_for_min_count(
     if fill_value is NaT:
         fill_value = values.dtype.type("NaT", "ns")
 
-    if values.ndim == 1:
-        return fill_value
-    elif axis is None:
+    if values.ndim == 1 or axis is None:
         return fill_value
     else:
         result_shape = values.shape[:axis] + values.shape[axis + 1 :]
 
-        result = np.full(result_shape, fill_value, dtype=values.dtype)
-        return result
+        return np.full(result_shape, fill_value, dtype=values.dtype)
 
 
 def nanany(
@@ -1139,12 +1130,12 @@ def nanskew(
     if isinstance(result, np.ndarray):
         result = np.where(m2 == 0, 0, result)
         result[count < 3] = np.nan
-        return result
     else:
         result = 0 if m2 == 0 else result
         if count < 3:
             return np.nan
-        return result
+
+    return result
 
 
 @disallow("M8", "m8")
@@ -1289,17 +1280,10 @@ def _maybe_arg_null_out(
         return result
 
     if axis is None or not getattr(result, "ndim", False):
-        if skipna:
-            if mask.all():
-                result = -1
-        else:
-            if mask.any():
-                result = -1
+        if skipna and mask.all() or not skipna and mask.any():
+            result = -1
     else:
-        if skipna:
-            na_mask = mask.all(axis)
-        else:
-            na_mask = mask.any(axis)
+        na_mask = mask.all(axis) if skipna else mask.any(axis)
         if na_mask.any():
             result[na_mask] = -1
     return result
@@ -1331,10 +1315,7 @@ def _get_counts(
     """
     dtype = get_dtype(dtype)
     if axis is None:
-        if mask is not None:
-            n = mask.size - mask.sum()
-        else:
-            n = np.prod(values_shape)
+        n = mask.size - mask.sum() if mask is not None else np.prod(values_shape)
         return dtype.type(n)
 
     if mask is not None:

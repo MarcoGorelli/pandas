@@ -59,10 +59,7 @@ class UndefinedVariableError(NameError):
 
     def __init__(self, name: str, is_local: Optional[bool] = None):
         base_msg = f"{repr(name)} is not defined"
-        if is_local:
-            msg = f"local variable {base_msg}"
-        else:
-            msg = f"name {base_msg}"
+        msg = f"local variable {base_msg}" if is_local else f"name {base_msg}"
         super().__init__(msg)
 
 

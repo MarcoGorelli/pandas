@@ -236,10 +236,11 @@ class MergeCategoricals:
 
         self.right_object = DataFrame(
             {
-                "X": np.random.choice(range(0, 10), size=(10000,)),
+                "X": np.random.choice(range(10), size=(10000,)),
                 "Z": np.random.choice(["jjj", "kkk", "sss"], size=(10000,)),
             }
         )
+
 
         self.left_cat = self.left_object.assign(
             Y=self.left_object["Y"].astype("category")

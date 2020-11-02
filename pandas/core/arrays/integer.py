@@ -529,11 +529,7 @@ class IntegerArray(BaseMaskedArray):
                     result = invalid_comparison(self._data, other, op)
 
         # nans propagate
-        if mask is None:
-            mask = self._mask.copy()
-        else:
-            mask = self._mask | mask
-
+        mask = self._mask.copy() if mask is None else self._mask | mask
         return BooleanArray(result, mask)
 
     def _arith_method(self, other, op):

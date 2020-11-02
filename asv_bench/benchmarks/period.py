@@ -19,10 +19,7 @@ class PeriodIndexConstructor:
         self.daily_ints = (
             date_range("1/1/2000", periods=1000, freq=freq).strftime("%Y%m%d").map(int)
         )
-        if is_offset:
-            self.freq = to_offset(freq)
-        else:
-            self.freq = freq
+        self.freq = to_offset(freq) if is_offset else freq
 
     def time_from_date_range(self, freq, is_offset):
         PeriodIndex(self.rng, freq=freq)

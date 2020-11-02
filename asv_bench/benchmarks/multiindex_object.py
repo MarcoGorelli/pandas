@@ -151,8 +151,7 @@ class Values:
 
         level1 = range(1000)
         level2 = date_range(start="1/1/2012", periods=100)
-        mi = MultiIndex.from_product([level1, level2])
-        return mi
+        return MultiIndex.from_product([level1, level2])
 
     def time_datetime_level_values_copy(self, mi):
         mi.copy().values

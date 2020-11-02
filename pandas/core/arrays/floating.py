@@ -432,11 +432,7 @@ class FloatingArray(BaseMaskedArray):
                     result = invalid_comparison(self._data, other, op)
 
         # nans propagate
-        if mask is None:
-            mask = self._mask.copy()
-        else:
-            mask = self._mask | mask
-
+        mask = self._mask.copy() if mask is None else self._mask | mask
         return BooleanArray(result, mask)
 
     def sum(self, *, skipna=True, min_count=0, **kwargs):

@@ -195,11 +195,7 @@ class PeriodArray(PeriodMixin, dtl.DatelikeOps):
         dtype: Optional[PeriodDtype] = None,
         copy: bool = False,
     ) -> "PeriodArray":
-        if dtype:
-            freq = dtype.freq
-        else:
-            freq = None
-
+        freq = dtype.freq if dtype else None
         if isinstance(scalars, cls):
             validate_dtype_freq(scalars.dtype, freq)
             if copy:
@@ -544,11 +540,7 @@ class PeriodArray(PeriodMixin, dtl.DatelikeOps):
         asi8 = self.asi8
         # self.freq.n can't be negative or 0
         end = how == "E"
-        if end:
-            ordinal = asi8 + self.freq.n - 1
-        else:
-            ordinal = asi8
-
+        ordinal = asi8 + self.freq.n - 1 if end else asi8
         new_data = period_asfreq_arr(ordinal, base1, base2, end)
 
         if self._hasnans:
@@ -593,7 +585,7 @@ class PeriodArray(PeriodMixin, dtl.DatelikeOps):
         if is_dtype_equal(dtype, self._dtype):
             if not copy:
                 return self
-            elif copy:
+            else:
                 return self.copy()
         if is_period_dtype(dtype):
             return self.asfreq(dtype.freq)
@@ -896,11 +888,7 @@ def period_array(
     data = np.asarray(data)
 
     dtype: Optional[PeriodDtype]
-    if freq:
-        dtype = PeriodDtype(freq)
-    else:
-        dtype = None
-
+    dtype = PeriodDtype(freq) if freq else None
     if is_float_dtype(data) and len(data) > 0:
         raise TypeError("PeriodIndex does not allow floating point in construction")
 
@@ -1084,11 +1072,9 @@ def _make_field_arrays(*fields):
             elif length is None:
                 length = len(x)
 
-    arrays = [
+    return [
         np.asarray(x)
         if isinstance(x, (np.ndarray, list, ABCSeries))
         else np.repeat(x, length)
         for x in fields
     ]
-
-    return arrays

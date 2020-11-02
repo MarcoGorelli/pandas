@@ -362,11 +362,7 @@ class StringArray(PandasArray):
 
         if is_integer_dtype(dtype) or is_bool_dtype(dtype):
             constructor: Union[Type[IntegerArray], Type[BooleanArray]]
-            if is_integer_dtype(dtype):
-                constructor = IntegerArray
-            else:
-                constructor = BooleanArray
-
+            constructor = IntegerArray if is_integer_dtype(dtype) else BooleanArray
             na_value_is_na = isna(na_value)
             if na_value_is_na:
                 na_value = 1

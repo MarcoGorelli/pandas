@@ -54,7 +54,7 @@ class OnOffset:
             datetime(2016, m, d)
             for m in [10, 11, 12]
             for d in [1, 2, 3, 28, 29, 30, 31]
-            if not (m == 11 and d == 31)
+            if m != 11 or d != 31
         ]
 
     def time_on_offset(self, offset):

@@ -44,8 +44,7 @@ class ToTimedeltaErrors:
 class DatetimeAccessor:
     def setup_cache(self):
         N = 100000
-        series = Series(timedelta_range("1 days", periods=N, freq="h"))
-        return series
+        return Series(timedelta_range("1 days", periods=N, freq="h"))
 
     def time_dt_accessor(self, series):
         series.dt

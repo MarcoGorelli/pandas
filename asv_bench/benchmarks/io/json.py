@@ -259,9 +259,7 @@ class ToJSONLines(BaseIO):
 class ToJSONMem:
     def setup_cache(self):
         df = DataFrame([[1]])
-        frames = {"int": df, "float": df.astype(float)}
-
-        return frames
+        return {"int": df, "float": df.astype(float)}
 
     def peakmem_int(self, frames):
         df = frames["int"]
