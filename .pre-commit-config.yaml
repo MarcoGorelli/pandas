@@ -13,7 +13,7 @@ repos:
         types: [cython]
         args: [--append-config=flake8/cython.cfg]
     -   id: flake8
-        name: flake8 (cython template)
+        name: flake8 (cython template!)
         files: \.pxi\.in$
         types: [text]
         args: [--append-config=flake8/cython-template.cfg]
