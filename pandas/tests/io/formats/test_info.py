@@ -459,3 +459,9 @@ def test_info_categorical():
 
     buf = StringIO()
     df.info(buf=buf)
+
+
+def test_info_integer_column_names():
+    # GH37245
+    df = DataFrame({1: [1, 2], 2: [2, 3]}, index=["A", "B"])
+    df.info()
