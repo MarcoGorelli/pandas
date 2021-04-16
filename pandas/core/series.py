@@ -4352,7 +4352,7 @@ Keep all original rows and also all original values
         inplace=False,
         level=None,
         errors="ignore",
-    ):
+    ) -> Series | None:
         """
         Alter Series index labels or name.
 
@@ -4413,7 +4413,7 @@ Keep all original rows and also all original values
         dtype: int64
         """
         if callable(index) or is_dict_like(index):
-            return super().rename(
+            return super().generic_rename(
                 index, copy=copy, inplace=inplace, level=level, errors=errors
             )
         else:

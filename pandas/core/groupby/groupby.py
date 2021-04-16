@@ -1698,7 +1698,9 @@ class GroupBy(BaseGroupBy[FrameOrSeries]):
             result = self._obj_1d_constructor(result)
 
         if not self.as_index:
-            result = result.rename("size").reset_index()
+            from typing import cast
+
+            result = cast(Series, result.rename("size")).reset_index()
 
         return self._reindex_output(result, fill_value=0)
 

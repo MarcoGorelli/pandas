@@ -4996,7 +4996,7 @@ class DataFrame(NDFrame, OpsMixin):
         2  2  5
         4  3  6
         """
-        return super().rename(
+        return super().generic_rename(
             mapper=mapper,
             index=index,
             columns=columns,

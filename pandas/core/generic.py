@@ -971,7 +971,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
     # ----------------------------------------------------------------------
     # Rename
 
-    def rename(
+    def generic_rename(
         self: FrameOrSeries,
         mapper: Renamer | None = None,
         *,
@@ -4291,11 +4291,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         f = functools.partial("{prefix}{}".format, prefix=prefix)
 
         mapper = {self._info_axis_name: f}
-        # error: Incompatible return value type (got "Optional[FrameOrSeries]",
-        # expected "FrameOrSeries")
-        # error: Argument 1 to "rename" of "NDFrame" has incompatible type
-        # "**Dict[str, partial[str]]"; expected "Union[str, int, None]"
-        return self.rename(**mapper)  # type: ignore[return-value, arg-type]
+        return self.rename(**mapper)
 
     @final
     def add_suffix(self: FrameOrSeries, suffix: str) -> FrameOrSeries:
@@ -4355,11 +4351,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         f = functools.partial("{}{suffix}".format, suffix=suffix)
 
         mapper = {self._info_axis_name: f}
-        # error: Incompatible return value type (got "Optional[FrameOrSeries]",
-        # expected "FrameOrSeries")
-        # error: Argument 1 to "rename" of "NDFrame" has incompatible type
-        # "**Dict[str, partial[str]]"; expected "Union[str, int, None]"
-        return self.rename(**mapper)  # type: ignore[return-value, arg-type]
+        return self.rename(**mapper)
 
     def sort_values(
         self,
