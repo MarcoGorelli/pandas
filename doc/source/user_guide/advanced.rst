@@ -6,7 +6,7 @@
 MultiIndex / advanced indexing
 ******************************
 
-This section covers :ref:`indexing with a MultiIndex <advanced.hierarchical>`
+This section will cover :ref:`indexing with a MultiIndex <advanced.hierarchical>`
 and :ref:`other advanced indexing features <advanced.index_types>`.
 
 See the :ref:`Indexing and Selecting Data <indexing>` for general indexing documentation.
