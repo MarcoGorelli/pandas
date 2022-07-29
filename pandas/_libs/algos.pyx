@@ -242,13 +242,8 @@ def groupsort_indexer(const intp_t[:] index, Py_ssize_t ngroups):
 
 
 cdef inline Py_ssize_t swap(numeric_t *a, numeric_t *b) nogil:
-    cdef:
-        numeric_t t
-
     # cython doesn't allow pointer dereference so use array syntax
-    t = a[0]
-    a[0] = b[0]
-    b[0] = t
+    a[0], b[0] = b[0], a[0]
     return 0
 
 
