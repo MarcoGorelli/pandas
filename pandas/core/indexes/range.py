@@ -417,9 +417,10 @@ class RangeIndex(NumericIndex):
 
         target_array = np.asarray(target)
         locs = target_array - start
-        valid = ((step == 1) or (locs % step == 0)) & (locs >= 0) & (target_array < stop)
+        valid = (locs % step == 0) & (locs >= 0) & (target_array < stop)
         locs[~valid] = -1
-        locs[valid] = locs[valid] / step
+        if step != 1:
+            locs[valid] = locs[valid] / step
 
         if step != self.step:
             # We reversed this range: transform to original locs
