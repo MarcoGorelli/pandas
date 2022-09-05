@@ -419,8 +419,7 @@ class RangeIndex(NumericIndex):
         locs = target_array - start
         valid = ((step == 1) or (locs % step == 0)) & (locs >= 0) & (target_array < stop)
         locs[~valid] = -1
-        if step != 1:
-            locs[valid] = locs[valid] / step
+        locs[valid] = locs[valid] / step
 
         if step != self.step:
             # We reversed this range: transform to original locs
