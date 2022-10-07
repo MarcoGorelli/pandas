@@ -369,8 +369,7 @@ class MultiIndex(Index):
         new code where code value = -1 if it corresponds
         to a level with missing values (NaN, NaT, None).
         """
-        null_mask = isna(level)
-        if np.any(null_mask):
+        if np.any(null_mask := isna(level)):
             # error: Incompatible types in assignment
             # (expression has type "ndarray[Any, dtype[Any]]",
             # variable has type "List[Any]")

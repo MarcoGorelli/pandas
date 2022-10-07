@@ -1377,8 +1377,7 @@ default 'raise'
             FutureWarning,
             stacklevel=find_stack_level(inspect.currentframe()),
         )
-        week_series = self.isocalendar().week
-        if week_series.hasnans:
+        if (week_series := self.isocalendar().week).hasnans:
             return week_series.to_numpy(dtype="float64", na_value=np.nan)
         return week_series.to_numpy(dtype="int64")
 

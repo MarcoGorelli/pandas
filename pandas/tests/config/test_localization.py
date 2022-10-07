@@ -111,9 +111,8 @@ def test_set_locale(lang, enc):
     before_locale = _get_current_locale()
 
     enc = codecs.lookup(enc).name
-    new_locale = lang, enc
 
-    if not can_set_locale(new_locale):
+    if not can_set_locale(new_locale := lang, enc):
         msg = "unsupported locale setting"
 
         with pytest.raises(locale.Error, match=msg):

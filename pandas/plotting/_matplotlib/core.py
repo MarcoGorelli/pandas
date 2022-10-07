@@ -521,9 +521,8 @@ class MPLPlot(ABC):
 
         axes = flatten_axes(axes)
 
-        valid_log = {False, True, "sym", None}
         input_log = {self.logx, self.logy, self.loglog}
-        if input_log - valid_log:
+        if input_log - (valid_log := {False, True, "sym", None}):
             invalid_log = next(iter(input_log - valid_log))
             raise ValueError(
                 f"Boolean, None and 'sym' are valid options, '{invalid_log}' is given."
@@ -869,8 +868,7 @@ class MPLPlot(ABC):
     def _plot(
         cls, ax: Axes, x, y: np.ndarray, style=None, is_errorbar: bool = False, **kwds
     ):
-        mask = isna(y)
-        if mask.any():
+        if (mask := isna(y)).any():
             y = np.ma.array(y)
             y = np.ma.masked_where(mask, y)
 
@@ -905,8 +903,7 @@ class MPLPlot(ABC):
                 name = pprint_thing(name)
 
         # GH 45145, override the default axis label if one is provided.
-        index_name = self._get_custom_index_name()
-        if index_name is not None:
+        if (index_name := self._get_custom_index_name()) is not None:
             name = pprint_thing(index_name)
 
         return name

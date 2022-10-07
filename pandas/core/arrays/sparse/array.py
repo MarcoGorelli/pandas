@@ -182,9 +182,8 @@ def _sparse_array_op(
 
     # dtype used to find corresponding sparse method
     ltype = left.dtype.subtype
-    rtype = right.dtype.subtype
 
-    if not is_dtype_equal(ltype, rtype):
+    if not is_dtype_equal(ltype, (rtype := right.dtype.subtype)):
         subtype = find_common_type([ltype, rtype])
         ltype = SparseDtype(subtype, left.fill_value)
         rtype = SparseDtype(subtype, right.fill_value)
@@ -1068,8 +1067,7 @@ class SparseArray(OpsMixin, PandasObject, ExtensionArray):
     def _get_val_at(self, loc):
         loc = validate_insert_loc(loc, len(self))
 
-        sp_loc = self.sp_index.lookup(loc)
-        if sp_loc == -1:
+        if (sp_loc := self.sp_index.lookup(loc)) == -1:
             return self.fill_value
         else:
             val = self.sp_values[sp_loc]
@@ -1472,9 +1470,7 @@ class SparseArray(OpsMixin, PandasObject, ExtensionArray):
         """
         nv.validate_all(args, kwargs)
 
-        values = self.sp_values
-
-        if len(values) != len(self) and not np.all(self.fill_value):
+        if len(values := self.sp_values) != len(self) and not np.all(self.fill_value):
             return False
 
         return values.all()
@@ -1493,9 +1489,7 @@ class SparseArray(OpsMixin, PandasObject, ExtensionArray):
         """
         nv.validate_any(args, kwargs)
 
-        values = self.sp_values
-
-        if len(values) != len(self) and np.any(self.fill_value):
+        if len(values := self.sp_values) != len(self) and np.any(self.fill_value):
             return True
 
         return values.any().item()
@@ -1686,8 +1680,7 @@ class SparseArray(OpsMixin, PandasObject, ExtensionArray):
             return candidate
         if kind == "argmax" and self[candidate] > self.fill_value:
             return candidate
-        _loc = self._first_fill_value_loc()
-        if _loc == -1:
+        if (_loc := self._first_fill_value_loc()) == -1:
             # fill_value doesn't exist
             return candidate
         else:
@@ -1928,8 +1921,7 @@ def make_sparse(
         else:
             mask = arr != fill_value
 
-    length = len(arr)
-    if length != len(mask):
+    if (length := len(arr)) != len(mask):
         # the arr is a SparseArray
         indices = mask.sp_index.indices
     else:

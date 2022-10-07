@@ -276,8 +276,7 @@ def maybe_convert_indices(indices, n: int, verify: bool = True) -> np.ndarray:
             # and will cause indexing errors.
             return np.empty(0, dtype=np.intp)
 
-    mask = indices < 0
-    if mask.any():
+    if (mask := indices < 0).any():
         indices = indices.copy()
         indices[mask] += n
 

@@ -1428,10 +1428,7 @@ def assert_sp_array_equal(left, right) -> None:
     assert isinstance(left.sp_index, SparseIndex)
     assert isinstance(right.sp_index, SparseIndex)
 
-    left_index = left.sp_index
-    right_index = right.sp_index
-
-    if not left_index.equals(right_index):
+    if not (left_index := left.sp_index).equals(right_index := right.sp_index):
         raise_assert_detail(
             "SparseArray.index", "index are not equal", left_index, right_index
         )

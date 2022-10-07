@@ -32,8 +32,7 @@ def left_df(request, df1):
     """Construct left test DataFrame with specified levels
     (any of 'outer', 'inner', and 'v1')
     """
-    levels = request.param
-    if levels:
+    if levels := request.param:
         df1 = df1.set_index(levels)
 
     return df1
@@ -44,9 +43,8 @@ def right_df(request, df2):
     """Construct right test DataFrame with specified levels
     (any of 'outer', 'inner', and 'v2')
     """
-    levels = request.param
 
-    if levels:
+    if levels := request.param:
         df2 = df2.set_index(levels)
 
     return df2

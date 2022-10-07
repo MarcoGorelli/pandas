@@ -31,9 +31,8 @@ class TestDataFrameToXArray:
         )
 
     def test_to_xarray_index_types(self, index_flat, df):
-        index = index_flat
         # MultiIndex is tested in test_to_xarray_with_multiindex
-        if len(index) == 0:
+        if len(index := index_flat) == 0:
             pytest.skip("Test doesn't make sense for empty index")
 
         from xarray import Dataset

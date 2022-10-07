@@ -200,12 +200,11 @@ class TestCommon(Base):
 
         # see gh-14101
         exp_warning = None
-        ts = Timestamp(dt) + Nano(5)
 
         if (
             type(offset_s).__name__ == "DateOffset"
             and (funcname in ["apply", "_apply"] or normalize)
-            and ts.nanosecond > 0
+            and (ts := Timestamp(dt) + Nano(5)).nanosecond > 0
         ):
             exp_warning = UserWarning
 
@@ -466,13 +465,12 @@ class TestCommon(Base):
 
     def test_add_empty_datetimeindex(self, offset_types, tz_naive_fixture):
         # GH#12724, GH#30336
-        offset_s = self._get_offset(offset_types)
 
         dti = DatetimeIndex([], tz=tz_naive_fixture)
 
         warn = None
         if isinstance(
-            offset_s,
+            (offset_s := self._get_offset(offset_types)),
             (
                 Easter,
                 WeekOfMonth,

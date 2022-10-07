@@ -278,8 +278,7 @@ class _FrequencyInferer:
             return None
 
         delta = self.deltas[0]
-        ppd = periods_per_day(self._reso)
-        if delta and _is_multiple(delta, ppd):
+        if delta and _is_multiple(delta, (ppd := periods_per_day(self._reso))):
             return self._infer_daily_rule()
 
         # Business hourly, maybe. 17: one day / 65: one weekend
@@ -346,23 +345,20 @@ class _FrequencyInferer:
         return unique_deltas(self.fields["Y"].astype("i8"))
 
     def _infer_daily_rule(self) -> str | None:
-        annual_rule = self._get_annual_rule()
-        if annual_rule:
+        if annual_rule := self._get_annual_rule():
             nyears = self.ydiffs[0]
             month = MONTH_ALIASES[self.rep_stamp.month]
             alias = f"{annual_rule}-{month}"
             return _maybe_add_count(alias, nyears)
 
-        quarterly_rule = self._get_quarterly_rule()
-        if quarterly_rule:
+        if quarterly_rule := self._get_quarterly_rule():
             nquarters = self.mdiffs[0] / 3
             mod_dict = {0: 12, 2: 11, 1: 10}
             month = MONTH_ALIASES[mod_dict[self.rep_stamp.month % 3]]
             alias = f"{quarterly_rule}-{month}"
             return _maybe_add_count(alias, nquarters)
 
-        monthly_rule = self._get_monthly_rule()
-        if monthly_rule:
+        if monthly_rule := self._get_monthly_rule():
             return _maybe_add_count(monthly_rule, self.mdiffs[0])
 
         if self.is_unique:
@@ -371,16 +367,14 @@ class _FrequencyInferer:
         if self._is_business_daily():
             return "B"
 
-        wom_rule = self._get_wom_rule()
-        if wom_rule:
+        if wom_rule := self._get_wom_rule():
             return wom_rule
 
         return None
 
     def _get_daily_rule(self) -> str | None:
         ppd = periods_per_day(self._reso)
-        days = self.deltas[0] / ppd
-        if days % 7 == 0:
+        if (days := self.deltas[0] / ppd) % 7 == 0:
             # Weekly
             wd = int_to_weekday[self.rep_stamp.weekday()]
             alias = f"W-{wd}"
@@ -395,9 +389,7 @@ class _FrequencyInferer:
         if len(unique(self.fields["M"])) > 1:
             return None
 
-        pos_check = self.month_position_check()
-
-        if pos_check is None:
+        if (pos_check := self.month_position_check()) is None:
             return None
         else:
             return {"cs": "AS", "bs": "BAS", "ce": "A", "be": "BA"}.get(pos_check)
@@ -409,9 +401,7 @@ class _FrequencyInferer:
         if not self.mdiffs[0] % 3 == 0:
             return None
 
-        pos_check = self.month_position_check()
-
-        if pos_check is None:
+        if (pos_check := self.month_position_check()) is None:
             return None
         else:
             return {"cs": "QS", "bs": "BQS", "ce": "Q", "be": "BQ"}.get(pos_check)
@@ -419,9 +409,8 @@ class _FrequencyInferer:
     def _get_monthly_rule(self) -> str | None:
         if len(self.mdiffs) > 1:
             return None
-        pos_check = self.month_position_check()
 
-        if pos_check is None:
+        if (pos_check := self.month_position_check()) is None:
             return None
         else:
             return {"cs": "MS", "bs": "BMS", "ce": "M", "be": "BM"}.get(pos_check)
@@ -452,8 +441,7 @@ class _FrequencyInferer:
         #     if not lib.ismember(wdiffs, set([4, 5, -47, -49, -48])).all():
         #         return None
 
-        weekdays = unique(self.index.weekday)
-        if len(weekdays) > 1:
+        if len(weekdays := unique(self.index.weekday)) > 1:
             return None
 
         week_of_months = unique((self.index.day - 1) // 7)

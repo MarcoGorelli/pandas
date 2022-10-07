@@ -436,9 +436,8 @@ def test_loc_getitem_duplicates_multiindex_missing_indexers(indexer, pos):
         [["A", "B", "C"], ["foo", "bar", "baz"]], names=["one", "two"]
     )
     ser = Series(np.arange(9, dtype="int64"), index=idx).sort_index()
-    expected = ser.iloc[pos]
 
-    if expected.size == 0 and indexer != []:
+    if (expected := ser.iloc[pos]).size == 0 and indexer != []:
         with pytest.raises(KeyError, match=str(indexer)):
             ser.loc[indexer]
     else:

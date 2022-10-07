@@ -1266,8 +1266,7 @@ class SingleArrayManager(BaseArrayManager, SingleDataManager):
 
     def array_values(self):
         """The array that Series.array returns"""
-        arr = self.array
-        if isinstance(arr, np.ndarray):
+        if isinstance((arr := self.array), np.ndarray):
             arr = PandasArray(arr)
         return arr
 

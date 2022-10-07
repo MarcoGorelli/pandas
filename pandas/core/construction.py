@@ -490,8 +490,7 @@ def sanitize_masked_array(data: ma.MaskedArray) -> np.ndarray:
     """
     Convert numpy MaskedArray to ensure mask is softened.
     """
-    mask = ma.getmaskarray(data)
-    if mask.any():
+    if (mask := ma.getmaskarray(data)).any():
         data, fill_value = maybe_upcast(data, copy=True)
         data.soften_mask()  # set hardmask False if it was True
         data[mask] = fill_value

@@ -1267,8 +1267,7 @@ class TestFrameArithmeticUnsorted:
         ).sort_index()
 
         idx = pd.IndexSlice
-        opa = getattr(operator, op, None)
-        if opa is None:
+        if (opa := getattr(operator, op, None)) is None:
             return
 
         x = Series([1.0, 10.0, 100.0], [1, 2, 3])

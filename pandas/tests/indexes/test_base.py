@@ -672,8 +672,7 @@ class TestIndex(Base):
         # windows has different precision on datetime.datetime.now (it doesn't
         # include us since the default for Timestamp shows these but Index
         # formatting does not we are skipping)
-        now = datetime.now()
-        if not str(now).endswith("000"):
+        if not str(now := datetime.now()).endswith("000"):
             index = Index([now])
             formatted = index.format()
             expected = [str(index[0])]

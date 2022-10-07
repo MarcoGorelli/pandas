@@ -151,8 +151,7 @@ class BaseMaskedArray(OpsMixin, ExtensionArray):
     ) -> BaseMaskedArrayT | Any:
         item = check_array_indexer(self, item)
 
-        newmask = self._mask[item]
-        if is_bool(newmask):
+        if is_bool(newmask := self._mask[item]):
             # This is a scalar indexing
             if newmask:
                 return self.dtype.na_value

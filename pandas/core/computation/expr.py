@@ -593,14 +593,11 @@ class BaseExprVisitor(ast.NodeVisitor):
 
     def visit_Slice(self, node, **kwargs):
         """df.index[slice(4,6)]"""
-        lower = node.lower
-        if lower is not None:
+        if (lower := node.lower) is not None:
             lower = self.visit(lower).value
-        upper = node.upper
-        if upper is not None:
+        if (upper := node.upper) is not None:
             upper = self.visit(upper).value
-        step = node.step
-        if step is not None:
+        if (step := node.step) is not None:
             step = self.visit(step).value
 
         return slice(lower, upper, step)
@@ -639,8 +636,7 @@ class BaseExprVisitor(ast.NodeVisitor):
         attr = node.attr
         value = node.value
 
-        ctx = node.ctx
-        if isinstance(ctx, ast.Load):
+        if isinstance((ctx := node.ctx), ast.Load):
             # resolve the value
             resolved = self.visit(value).value
             try:
@@ -714,10 +710,9 @@ class BaseExprVisitor(ast.NodeVisitor):
 
     def visit_Compare(self, node, **kwargs):
         ops = node.ops
-        comps = node.comparators
 
         # base case: we have something like a CMP b
-        if len(comps) == 1:
+        if len(comps := node.comparators) == 1:
             op = self.translate_In(ops[0])
             binop = ast.BinOp(op=op, left=node.left, right=comps[0])
             return self.visit(binop)

@@ -115,8 +115,7 @@ def all_parsers(request):
     """
     Fixture all of the CSV parsers.
     """
-    parser = request.param()
-    if parser.engine == "pyarrow":
+    if (parser := request.param()).engine == "pyarrow":
         pytest.importorskip("pyarrow", VERSIONS["pyarrow"])
         # Try finding a way to disable threads all together
         # for more stable CI runs

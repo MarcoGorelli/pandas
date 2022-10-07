@@ -195,9 +195,8 @@ class WrappedCythonOp:
         -------
         values : np.ndarray
         """
-        how = self.how
 
-        if how == "median":
+        if (how := self.how) == "median":
             # median only has a float64 implementation
             # We should only get here with is_numeric, as non-numeric cases
             #  should raise in _get_cython_function
@@ -519,9 +518,7 @@ class WrappedCythonOp:
         dtype = values.dtype
         is_numeric = is_numeric_dtype(dtype)
 
-        is_datetimelike = needs_i8_conversion(dtype)
-
-        if is_datetimelike:
+        if is_datetimelike := needs_i8_conversion(dtype):
             values = values.view("int64")
             is_numeric = True
         elif is_bool_dtype(dtype):

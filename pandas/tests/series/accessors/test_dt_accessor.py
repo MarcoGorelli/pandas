@@ -88,8 +88,7 @@ class TestSeriesDatetimeValues:
             return Series(result, index=ser.index, name=ser.name)
 
         left = getattr(ser.dt, name)
-        right = get_expected(ser, name)
-        if not (is_list_like(left) and is_list_like(right)):
+        if not (is_list_like(left) and is_list_like(right := get_expected(ser, name))):
             assert left == right
         elif isinstance(left, DataFrame):
             tm.assert_frame_equal(left, right)

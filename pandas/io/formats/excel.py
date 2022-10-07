@@ -230,8 +230,7 @@ class CSSToExcelConverter:
         }
 
     def _get_vertical_alignment(self, props: Mapping[str, str]) -> str | None:
-        vertical_align = props.get("vertical-align")
-        if vertical_align:
+        if vertical_align := props.get("vertical-align"):
             return self.VERTICAL_MAP.get(vertical_align)
         return None
 
@@ -281,8 +280,7 @@ class CSSToExcelConverter:
         if style == "none" or style == "hidden":
             return "none"
 
-        width_name = self._get_width_name(width)
-        if width_name is None:
+        if (width_name := self._get_width_name(width)) is None:
             return "none"
 
         if style in (None, "groove", "ridge", "inset", "outset", "solid"):
@@ -350,20 +348,17 @@ class CSSToExcelConverter:
         }
 
     def _get_is_bold(self, props: Mapping[str, str]) -> bool | None:
-        weight = props.get("font-weight")
-        if weight:
+        if weight := props.get("font-weight"):
             return self.BOLD_MAP.get(weight)
         return None
 
     def _get_is_italic(self, props: Mapping[str, str]) -> bool | None:
-        font_style = props.get("font-style")
-        if font_style:
+        if font_style := props.get("font-style"):
             return self.ITALIC_MAP.get(font_style)
         return None
 
     def _get_decoration(self, props: Mapping[str, str]) -> Sequence[str]:
-        decoration = props.get("text-decoration")
-        if decoration is not None:
+        if (decoration := props.get("text-decoration")) is not None:
             return decoration.split()
         else:
             return ()
@@ -405,8 +400,7 @@ class CSSToExcelConverter:
         return font_names
 
     def _get_font_size(self, props: Mapping[str, str]) -> float | None:
-        size = props.get("font-size")
-        if size is None:
+        if (size := props.get("font-size")) is None:
             return size
         return self._pt_to_float(size)
 

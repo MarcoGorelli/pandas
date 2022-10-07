@@ -124,10 +124,9 @@ class _Unstacker:
         num_columns = self.removed_level.size
 
         # GH20601: This forces an overflow if the number of cells is too high.
-        num_cells = num_rows * num_columns
 
         # GH 26314: Previous ValueError raised was too restrictive for many users.
-        if num_cells > np.iinfo(np.int32).max:
+        if (num_cells := num_rows * num_columns) > np.iinfo(np.int32).max:
             warnings.warn(
                 f"The following operation may generate {num_cells} cells "
                 f"in the resulting pandas object.",
@@ -380,11 +379,9 @@ def _unstack_multiple(data, clocs, fill_value=None):
 
     # NOTE: This doesn't deal with hierarchical columns yet
 
-    index = data.index
-
     # GH 19966 Make sure if MultiIndexed index has tuple name, they will be
     # recognised as a whole
-    if clocs in index.names:
+    if clocs in (index := data.index).names:
         clocs = [clocs]
     clocs = [index._get_level_number(i) for i in clocs]
 

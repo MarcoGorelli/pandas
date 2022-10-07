@@ -2231,8 +2231,7 @@ class Categorical(NDArrayBackedExtensionArray, PandasObject, ObjectStringArrayMi
         """
         String representation.
         """
-        _maxlen = 10
-        if len(self._codes) > _maxlen:
+        if len(self._codes) > (_maxlen := 10):
             result = self._tidy_repr(_maxlen)
         elif len(self._codes) > 0:
             result = self._get_repr(length=len(self) > _maxlen)
@@ -2487,8 +2486,7 @@ class Categorical(NDArrayBackedExtensionArray, PandasObject, ObjectStringArrayMi
     ) -> CategoricalT:
         from pandas.core.dtypes.concat import union_categoricals
 
-        first = to_concat[0]
-        if axis >= first.ndim:
+        if axis >= (first := to_concat[0]).ndim:
             raise ValueError(
                 f"axis {axis} is out of bounds for array of dimension {first.ndim}"
             )
@@ -2902,8 +2900,7 @@ class CategoricalAccessor(PandasDelegate, PandasObject, NoNewAttributesMixin):
         from pandas import Series
 
         method = getattr(self._parent, name)
-        res = method(*args, **kwargs)
-        if res is not None:
+        if (res := method(*args, **kwargs)) is not None:
             return Series(res, index=self._index, name=self._name)
 
 

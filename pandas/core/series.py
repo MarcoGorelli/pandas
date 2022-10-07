@@ -1263,8 +1263,7 @@ class Series(base.IndexOpsMixin, NDFrame):  # type: ignore[misc]
 
     def _get_cacher(self):
         """return my cacher or None"""
-        cacher = getattr(self, "_cacher", None)
-        if cacher is not None:
+        if (cacher := getattr(self, "_cacher", None)) is not None:
             cacher = cacher[1]()
         return cacher
 
@@ -1303,8 +1302,7 @@ class Series(base.IndexOpsMixin, NDFrame):  # type: ignore[misc]
         """
         See NDFrame._maybe_update_cacher.__doc__
         """
-        cacher = getattr(self, "_cacher", None)
-        if cacher is not None:
+        if (cacher := getattr(self, "_cacher", None)) is not None:
             assert self.ndim == 1
             ref: DataFrame = cacher[1]()
 
@@ -1695,10 +1693,9 @@ class Series(base.IndexOpsMixin, NDFrame):  # type: ignore[misc]
             min_rows=min_rows,
             max_rows=max_rows,
         )
-        result = formatter.to_string()
 
         # catch contract violations
-        if not isinstance(result, str):
+        if not isinstance((result := formatter.to_string()), str):
             raise AssertionError(
                 "result must be of type str, type "
                 f"of result is {repr(type(result).__name__)}"
@@ -2180,8 +2177,7 @@ Name: Max Speed, dtype: float64
             Modes of the Series in sorted order.
         """
         # TODO: Add option for bins like value_counts()
-        values = self._values
-        if isinstance(values, np.ndarray):
+        if isinstance((values := self._values), np.ndarray):
             res_values = algorithms.mode(values, dropna=dropna)
         else:
             res_values = values._mode(dropna=dropna)
@@ -2500,8 +2496,8 @@ Name: Max Speed, dtype: float64
         """
         # error: Argument 1 to "argmin" of "IndexOpsMixin" has incompatible type "Union
         # [int, Literal['index', 'columns']]"; expected "Optional[int]"
-        i = self.argmin(axis, skipna, *args, **kwargs)  # type: ignore[arg-type]
-        if i == -1:
+        # type: ignore[arg-type]
+        if (i := self.argmin(axis, skipna, *args, **kwargs)) == -1:
             return np.nan
         return self.index[i]
 
@@ -2571,8 +2567,8 @@ Name: Max Speed, dtype: float64
         """
         # error: Argument 1 to "argmax" of "IndexOpsMixin" has incompatible type
         # "Union[int, Literal['index', 'columns']]"; expected "Optional[int]"
-        i = self.argmax(axis, skipna, *args, **kwargs)  # type: ignore[arg-type]
-        if i == -1:
+        # type: ignore[arg-type]
+        if (i := self.argmax(axis, skipna, *args, **kwargs)) == -1:
             return np.nan
         return self.index[i]
 
@@ -4030,9 +4026,8 @@ Keep all original rows and also all original values
         numpy.ndarray.argsort : Returns the indices that would sort this array.
         """
         values = self._values
-        mask = isna(values)
 
-        if mask.any():
+        if (mask := isna(values)).any():
             result = np.full(len(self), -1, dtype=np.intp)
             notmask = ~mask
             result[notmask] = np.argsort(values[notmask], kind=kind)

@@ -569,9 +569,8 @@ def test_bytes_exceed_2gb(c_parser_only):
     # see gh-16798
     #
     # Read from a "CSV" that has a column larger than 2GB.
-    parser = c_parser_only
 
-    if parser.low_memory:
+    if (parser := c_parser_only).low_memory:
         pytest.skip("not a low_memory test")
 
     csv = StringIO("strings\n" + "\n".join(["x" * (1 << 20) for _ in range(2100)]))

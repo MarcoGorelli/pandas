@@ -230,8 +230,7 @@ class TestCasting(base.BaseCastingTests):
 class TestArithmeticOps(base.BaseArithmeticOpsTests):
     def test_arith_frame_with_scalar(self, data, all_arithmetic_operators, request):
         # frame & scalar
-        op_name = all_arithmetic_operators
-        if op_name == "__rmod__":
+        if (op_name := all_arithmetic_operators) == "__rmod__":
             request.node.add_marker(
                 pytest.mark.xfail(
                     reason="rmod never called when string is first argument"
@@ -240,8 +239,7 @@ class TestArithmeticOps(base.BaseArithmeticOpsTests):
         super().test_arith_frame_with_scalar(data, op_name)
 
     def test_arith_series_with_scalar(self, data, all_arithmetic_operators, request):
-        op_name = all_arithmetic_operators
-        if op_name == "__rmod__":
+        if (op_name := all_arithmetic_operators) == "__rmod__":
             request.node.add_marker(
                 pytest.mark.xfail(
                     reason="rmod never called when string is first argument"

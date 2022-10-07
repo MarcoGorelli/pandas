@@ -2374,11 +2374,9 @@ def _factorize_keys(
 
     # NA group
     lmask = llab == -1
-    lany = lmask.any()
     rmask = rlab == -1
-    rany = rmask.any()
 
-    if lany or rany:
+    if (lany := lmask.any()) or (rany := rmask.any()):
         if lany:
             np.putmask(llab, lmask, count)
         if rany:
@@ -2485,8 +2483,7 @@ def _items_overlap_with_suffix(
             stacklevel=find_stack_level(inspect.currentframe()),
         )
 
-    to_rename = left.intersection(right)
-    if len(to_rename) == 0:
+    if len(to_rename := left.intersection(right)) == 0:
         return left, right
 
     lsuffix, rsuffix = suffixes
@@ -2517,15 +2514,12 @@ def _items_overlap_with_suffix(
     lrenamer = partial(renamer, suffix=lsuffix)
     rrenamer = partial(renamer, suffix=rsuffix)
 
-    llabels = left._transform_index(lrenamer)
-    rlabels = right._transform_index(rrenamer)
-
     dups = []
-    if not llabels.is_unique:
+    if not (llabels := left._transform_index(lrenamer)).is_unique:
         # Only warn when duplicates are caused because of suffixes, already duplicated
         # columns in origin should not warn
         dups = llabels[(llabels.duplicated()) & (~left.duplicated())].tolist()
-    if not rlabels.is_unique:
+    if not (rlabels := right._transform_index(rrenamer)).is_unique:
         dups.extend(rlabels[(rlabels.duplicated()) & (~right.duplicated())].tolist())
     if dups:
         warnings.warn(

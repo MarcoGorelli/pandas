@@ -809,8 +809,7 @@ class BaseGroupBy(PandasObject, SelectionMixin[NDFrameT], GroupByIndexingMixin):
         if obj is None:
             obj = self._selected_obj
 
-        inds = self._get_index(name)
-        if not len(inds):
+        if not len(inds := self._get_index(name)):
             raise KeyError(name)
 
         return obj._take_with_is_copy(inds, axis=self.axis)
@@ -1404,8 +1403,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
                 "More than 1 grouping labels are not supported with engine='numba'"
             )
         # GH 46867
-        index_data = data.index
-        if isinstance(index_data, MultiIndex):
+        if isinstance((index_data := data.index), MultiIndex):
             group_key = self.grouper.groupings[0].name
             index_data = index_data.get_level_values(group_key)
         sorted_index_data = index_data.take(sorted_index).to_numpy()
@@ -2907,8 +2905,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         mgr = obj._mgr
         res_mgr = mgr.apply(blk_func)
 
-        new_obj = obj._constructor(res_mgr)
-        if isinstance(new_obj, Series):
+        if isinstance((new_obj := obj._constructor(res_mgr)), Series):
             new_obj.name = obj.name
 
         return self._wrap_transformed_output(new_obj)
@@ -4173,8 +4170,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         Series or DataFrame
             Object (potentially) re-indexed to include all possible groups.
         """
-        groupings = self.grouper.groupings
-        if len(groupings) == 1:
+        if len(groupings := self.grouper.groupings) == 1:
             return output
 
         # if we only care about the observed values

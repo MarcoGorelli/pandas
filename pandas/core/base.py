@@ -142,8 +142,7 @@ class PandasObject(DirNamesMixin):
         Generates the total memory usage for an object that returns
         either a value or Series of values
         """
-        memory_usage = getattr(self, "memory_usage", None)
-        if memory_usage:
+        if memory_usage := getattr(self, "memory_usage", None):
             mem = memory_usage(deep=True)
             return int(mem if is_scalar(mem) else mem.sum())
 
@@ -647,11 +646,10 @@ class IndexOpsMixin(OpsMixin):
         the minimum cereal calories is the first element,
         since series is zero-indexed.
         """
-        delegate = self._values
         nv.validate_minmax_axis(axis)
         skipna = nv.validate_argmax_with_skipna(skipna, args, kwargs)
 
-        if isinstance(delegate, ExtensionArray):
+        if isinstance((delegate := self._values), ExtensionArray):
             if not skipna and delegate.isna().any():
                 return -1
             else:
@@ -711,11 +709,10 @@ class IndexOpsMixin(OpsMixin):
     def argmin(
         self, axis: AxisInt | None = None, skipna: bool = True, *args, **kwargs
     ) -> int:
-        delegate = self._values
         nv.validate_minmax_axis(axis)
         skipna = nv.validate_argmin_with_skipna(skipna, args, kwargs)
 
-        if isinstance(delegate, ExtensionArray):
+        if isinstance((delegate := self._values), ExtensionArray):
             if not skipna and delegate.isna().any():
                 return -1
             else:
@@ -795,8 +792,7 @@ class IndexOpsMixin(OpsMixin):
         """
         Perform the reduction type operation if we can.
         """
-        func = getattr(self, name, None)
-        if func is None:
+        if (func := getattr(self, name, None)) is None:
             raise TypeError(
                 f"{type(self).__name__} cannot perform the operation {name}"
             )
@@ -996,9 +992,8 @@ class IndexOpsMixin(OpsMixin):
         )
 
     def unique(self):
-        values = self._values
 
-        if not isinstance(values, np.ndarray):
+        if not isinstance((values := self._values), np.ndarray):
             result: ArrayLike = values.unique()
             if (
                 isinstance(self.dtype, np.dtype) and self.dtype.kind in ["m", "M"]
@@ -1299,8 +1294,7 @@ class IndexOpsMixin(OpsMixin):
         sorter: NumpySorter = None,
     ) -> npt.NDArray[np.intp] | np.intp:
 
-        values = self._values
-        if not isinstance(values, np.ndarray):
+        if not isinstance((values := self._values), np.ndarray):
             # Going through EA.searchsorted directly improves performance GH#38083
             return values.searchsorted(value, side=side, sorter=sorter)
 

@@ -339,8 +339,7 @@ class CSSResolver:
             )
             return self.size_to_pt("1!!default", conversions=conversions)
 
-        match = re.match(r"^(\S*?)([a-zA-Z%!].*)", in_val)
-        if match is None:
+        if (match := re.match(r"^(\S*?)([a-zA-Z%!].*)", in_val)) is None:
             return _error()
 
         val, unit = match.groups()

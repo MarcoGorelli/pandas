@@ -478,8 +478,7 @@ class RangeIndex(NumericIndex):
         return new_index
 
     def _minmax(self, meth: str):
-        no_steps = len(self) - 1
-        if no_steps == -1:
+        if (no_steps := len(self) - 1) == -1:
             return np.nan
         elif (meth == "min" and self.step > 0) or (meth == "max" and self.step < 0):
             return self.start
@@ -598,8 +597,7 @@ class RangeIndex(NumericIndex):
         # check whether intervals intersect
         # deals with in- and decreasing ranges
         int_low = max(first.start, second.start)
-        int_high = min(first.stop, second.stop)
-        if int_high <= int_low:
+        if (int_high := min(first.stop, second.stop)) <= int_low:
             return self._simple_new(_empty_range)
 
         # Method hint: linear Diophantine equation

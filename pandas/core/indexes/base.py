@@ -1101,8 +1101,7 @@ class Index(IndexOpsMixin, PandasObject):
             # Ensure that self.astype(self.dtype) is self
             return self.copy() if copy else self
 
-        values = self._data
-        if isinstance(values, ExtensionArray):
+        if isinstance((values := self._data), ExtensionArray):
             if isinstance(dtype, np.dtype) and dtype.kind == "M" and is_unitless(dtype):
                 # TODO(2.0): remove this special-casing once this is enforced
                 #  in DTA.astype
@@ -1202,8 +1201,7 @@ class Index(IndexOpsMixin, PandasObject):
 
         # Note: we discard fill_value and use self._na_value, only relevant
         #  in the case where allow_fill is True and fill_value is not None
-        values = self._values
-        if isinstance(values, np.ndarray):
+        if isinstance((values := self._values), np.ndarray):
             taken = algos.take(
                 values, indices, allow_fill=allow_fill, fill_value=self._na_value
             )
@@ -1489,9 +1487,7 @@ class Index(IndexOpsMixin, PandasObject):
     def _format_with_header(self, header: list[str_t], na_rep: str_t) -> list[str_t]:
         from pandas.io.formats.format import format_array
 
-        values = self._values
-
-        if is_object_dtype(values.dtype):
+        if is_object_dtype((values := self._values).dtype):
             values = cast(np.ndarray, values)
             values = lib.maybe_convert_objects(values, safe=True)
 
@@ -2846,8 +2842,7 @@ class Index(IndexOpsMixin, PandasObject):
     @cache_readonly
     def _na_value(self):
         """The expected NA value to use with this index."""
-        dtype = self.dtype
-        if isinstance(dtype, np.dtype):
+        if isinstance((dtype := self.dtype), np.dtype):
             if dtype.kind in ["m", "M"]:
                 return NaT
             return np.nan
@@ -3885,8 +3880,7 @@ class Index(IndexOpsMixin, PandasObject):
         indexer = self.get_indexer([key], method=method, tolerance=tolerance)
         if indexer.ndim > 1 or indexer.size > 1:
             raise TypeError("get_loc requires scalar valued input")
-        loc = indexer.item()
-        if loc == -1:
+        if (loc := indexer.item()) == -1:
             raise KeyError(key)
         return loc
 
@@ -4837,10 +4831,9 @@ class Index(IndexOpsMixin, PandasObject):
         other_names_order = other_names_list.index
         self_names = set(self_names_list)
         other_names = set(other_names_list)
-        overlap = self_names & other_names
 
         # need at least 1 in common
-        if not overlap:
+        if not (overlap := self_names & other_names):
             raise ValueError("cannot join with no overlapping index names")
 
         if isinstance(self, MultiIndex) and isinstance(other, MultiIndex):
@@ -4921,10 +4914,9 @@ class Index(IndexOpsMixin, PandasObject):
         )
         mask = left_idx == -1
 
-        join_array = self._values.take(left_idx)
         right = other._values.take(right_idx)
 
-        if isinstance(join_array, np.ndarray):
+        if isinstance((join_array := self._values.take(left_idx)), np.ndarray):
             # error: Argument 3 to "putmask" has incompatible type
             # "Union[ExtensionArray, ndarray[Any, Any]]"; expected
             # "Union[_SupportsArray[dtype[Any]], _NestedSequence[
@@ -5183,8 +5175,7 @@ class Index(IndexOpsMixin, PandasObject):
     @cache_readonly
     @doc(IndexOpsMixin.array)
     def array(self) -> ExtensionArray:
-        array = self._data
-        if isinstance(array, np.ndarray):
+        if isinstance((array := self._data), np.ndarray):
             from pandas.core.arrays.numpy_ import PandasArray
 
             array = PandasArray(array)
@@ -5221,8 +5212,7 @@ class Index(IndexOpsMixin, PandasObject):
         Get the ndarray or ExtensionArray that we can pass to the IndexEngine
         constructor.
         """
-        vals = self._values
-        if isinstance(vals, StringArray):
+        if isinstance((vals := self._values), StringArray):
             # GH#45652 much more performant than ExtensionEngine
             return vals._ndarray
         if type(self) is Index and isinstance(self._values, ExtensionArray):
@@ -5551,9 +5541,7 @@ class Index(IndexOpsMixin, PandasObject):
             dtype = self._find_common_type_compat(value)
             return self.astype(dtype).putmask(mask, value)
 
-        values = self._values.copy()
-
-        if isinstance(values, np.ndarray):
+        if isinstance((values := self._values.copy()), np.ndarray):
             converted = setitem_datetimelike_compat(values, mask.sum(), converted)
             np.putmask(values, mask, converted)
 
@@ -6213,9 +6201,8 @@ class Index(IndexOpsMixin, PandasObject):
 
         # Count missing values
         missing_mask = indexer < 0
-        nmissing = missing_mask.sum()
 
-        if nmissing:
+        if nmissing := missing_mask.sum():
 
             # TODO: remove special-case; this is just to keep exception
             #  message tests from raising while debugging
@@ -6933,9 +6920,8 @@ class Index(IndexOpsMixin, PandasObject):
         >>> idx.delete([0, 2])
         Index(['b'], dtype='object')
         """
-        values = self._values
         res_values: ArrayLike
-        if isinstance(values, np.ndarray):
+        if isinstance((values := self._values), np.ndarray):
             # TODO(__array_function__): special casing will be unnecessary
             res_values = np.delete(values, loc)
         else:
@@ -7569,8 +7555,7 @@ def unpack_nested_dtype(other: _IndexT) -> _IndexT:
     -------
     Index
     """
-    dtype = other.dtype
-    if is_categorical_dtype(dtype):
+    if is_categorical_dtype(dtype := other.dtype):
         # If there is ever a SparseIndex, this could get dispatched
         #  here too.
         # error: Item  "dtype[Any]"/"ExtensionDtype" of "Union[dtype[Any],

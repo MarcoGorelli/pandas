@@ -334,8 +334,7 @@ def boxplot(
         result = np.take(result, [0, 0, 2])
         result = np.append(result, "k")
 
-        colors = kwds.pop("color", None)
-        if colors:
+        if colors := kwds.pop("color", None):
             if is_dict_like(colors):
                 # replace colors in result array with user-specified colors
                 # taken from the colors dict parameter

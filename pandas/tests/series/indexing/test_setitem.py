@@ -942,8 +942,7 @@ class TestSetitemDT64IntoInt(SetitemCastingEquivalents):
 
     @pytest.fixture(params=[None, list, np.array])
     def val(self, scalar, request):
-        box = request.param
-        if box is None:
+        if (box := request.param) is None:
             return scalar
         return box([scalar, scalar])
 

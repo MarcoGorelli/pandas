@@ -442,8 +442,7 @@ class SharedTests:
     )
     def test_setitem_object_dtype(self, box, arr1d):
 
-        expected = arr1d.copy()[::-1]
-        if expected.dtype.kind in ["m", "M"]:
+        if (expected := arr1d.copy()[::-1]).dtype.kind in ["m", "M"]:
             expected = expected._with_freq(None)
 
         vals = expected
@@ -493,8 +492,7 @@ class SharedTests:
 
     @pytest.mark.parametrize("as_index", [True, False])
     def test_setitem_categorical(self, arr1d, as_index):
-        expected = arr1d.copy()[::-1]
-        if not isinstance(expected, PeriodArray):
+        if not isinstance((expected := arr1d.copy()[::-1]), PeriodArray):
             expected = expected._with_freq(None)
 
         cat = pd.Categorical(arr1d)
@@ -572,8 +570,7 @@ class SharedTests:
         tm.assert_equal(result, expected)
 
     def test_median(self, arr1d):
-        arr = arr1d
-        if len(arr) % 2 == 0:
+        if len(arr := arr1d) % 2 == 0:
             # make it easier to define `expected`
             arr = arr[:-1]
 
@@ -903,9 +900,8 @@ class TestDatetimeArray(SharedTests):
 
     def test_concat_same_type_invalid(self, arr1d):
         # different timezones
-        arr = arr1d
 
-        if arr.tz is None:
+        if (arr := arr1d).tz is None:
             other = arr.tz_localize("UTC")
         else:
             other = arr.tz_localize(None)

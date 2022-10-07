@@ -560,9 +560,8 @@ def read_sql(
     0           0  2012-11-10
     1           1  2010-11-12
     """
-    pandas_sql = pandasSQL_builder(con)
 
-    if isinstance(pandas_sql, SQLiteDatabase):
+    if isinstance((pandas_sql := pandasSQL_builder(con)), SQLiteDatabase):
         return pandas_sql.read_query(
             sql,
             index_col=index_col,
@@ -925,9 +924,7 @@ class SQLTable(PandasObject):
 
         keys, data_list = self.insert_data()
 
-        nrows = len(self.frame)
-
-        if nrows == 0:
+        if (nrows := len(self.frame)) == 0:
             return 0
 
         if chunksize is None:
@@ -1834,8 +1831,7 @@ def _get_valid_sqlite_name(name):
     # Replace all " with "".
     # Wrap the entire thing in double quotes.
 
-    uname = _get_unicode_name(name)
-    if not len(uname):
+    if not len(uname := _get_unicode_name(name)):
         raise ValueError("Empty table or column name specified")
 
     nul_index = uname.find("\x00")
@@ -2105,8 +2101,7 @@ class SQLiteDatabase(PandasSQL):
             return frame
 
     def _fetchall_as_list(self, cur):
-        result = cur.fetchall()
-        if not isinstance(result, list):
+        if not isinstance((result := cur.fetchall()), list):
             result = list(result)
         return result
 

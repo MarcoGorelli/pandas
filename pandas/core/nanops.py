@@ -747,8 +747,7 @@ def nanmedian(values, *, axis: AxisInt | None = None, skipna: bool = True, mask=
     """
 
     def get_median(x):
-        mask = notna(x)
-        if not skipna and not mask.all():
+        if not skipna and not (mask := notna(x)).all():
             return np.nan
         with warnings.catch_warnings():
             # Suppress RuntimeWarning about All-NaN slice
@@ -1241,8 +1240,7 @@ def nanskew(
     with np.errstate(invalid="ignore", divide="ignore"):
         result = (count * (count - 1) ** 0.5 / (count - 2)) * (m3 / m2**1.5)
 
-    dtype = values.dtype
-    if is_float_dtype(dtype):
+    if is_float_dtype(dtype := values.dtype):
         result = result.astype(dtype, copy=False)
 
     if isinstance(result, np.ndarray):
@@ -1342,8 +1340,7 @@ def nankurt(
     with np.errstate(invalid="ignore", divide="ignore"):
         result = numerator / denominator - adj
 
-    dtype = values.dtype
-    if is_float_dtype(dtype):
+    if is_float_dtype(dtype := values.dtype):
         result = result.astype(dtype, copy=False)
 
     if isinstance(result, np.ndarray):
@@ -1667,12 +1664,11 @@ def make_nancomp(op):
     def f(x, y):
         xmask = isna(x)
         ymask = isna(y)
-        mask = xmask | ymask
 
         with np.errstate(all="ignore"):
             result = op(x, y)
 
-        if mask.any():
+        if (mask := xmask | ymask).any():
             if is_bool_dtype(result):
                 result = result.astype("O")
             np.putmask(result, mask, np.nan)

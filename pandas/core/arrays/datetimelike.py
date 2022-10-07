@@ -967,8 +967,7 @@ class DatetimeLikeArrayMixin(OpsMixin, NDArrayBackedExtensionArray):
 
     @property  # NB: override with cache_readonly in immutable subclasses
     def _resolution_obj(self) -> Resolution | None:
-        freqstr = self.freqstr
-        if freqstr is None:
+        if (freqstr := self.freqstr) is None:
             return None
         try:
             return Resolution.get_reso_from_freqstr(freqstr)
@@ -1090,8 +1089,7 @@ class DatetimeLikeArrayMixin(OpsMixin, NDArrayBackedExtensionArray):
         result = op(self._ndarray.view("i8"), other_vals.view("i8"))
 
         o_mask = isna(other)
-        mask = self._isnan | o_mask
-        if mask.any():
+        if (mask := self._isnan | o_mask).any():
             nat_result = op is operator.ne
             np.putmask(result, mask, nat_result)
 

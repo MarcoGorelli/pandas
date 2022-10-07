@@ -36,8 +36,7 @@ class TestNonNano:
 
     @pytest.fixture
     def dtype(self, unit, tz_naive_fixture):
-        tz = tz_naive_fixture
-        if tz is None:
+        if (tz := tz_naive_fixture) is None:
             return np.dtype(f"datetime64[{unit}]")
         else:
             return DatetimeTZDtype(unit=unit, tz=tz)

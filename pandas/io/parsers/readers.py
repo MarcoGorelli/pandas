@@ -1381,8 +1381,7 @@ def read_fwf(
 
     # GH#40830
     # Ensure length of `colspecs` matches length of `names`
-    names = kwds.get("names")
-    if names is not None:
+    if (names := kwds.get("names")) is not None:
         if len(names) != len(colspecs) and colspecs != "infer":
             # need to check len(index_col) as it might contain
             # unnamed indices, in which case it's name is not required
@@ -1427,8 +1426,7 @@ class TextFileReader(abc.Iterator):
 
         _validate_skipfooter(kwds)
 
-        dialect = _extract_dialect(kwds)
-        if dialect is not None:
+        if (dialect := _extract_dialect(kwds)) is not None:
             if engine == "pyarrow":
                 raise ValueError(
                     "The 'dialect' option is not supported with the 'pyarrow' engine"
@@ -1557,9 +1555,8 @@ class TextFileReader(abc.Iterator):
                 engine = "python"
 
         sep = options["delimiter"]
-        delim_whitespace = options["delim_whitespace"]
 
-        if sep is None and not delim_whitespace:
+        if sep is None and not (delim_whitespace := options["delim_whitespace"]):
             if engine in ("c", "pyarrow"):
                 fallback_reason = (
                     f"the '{engine}' engine does not support "
@@ -2168,8 +2165,7 @@ def _extract_dialect(kwds: dict[str, Any]) -> csv.Dialect | None:
     if kwds.get("dialect") is None:
         return None
 
-    dialect = kwds["dialect"]
-    if dialect in csv.list_dialects():
+    if (dialect := kwds["dialect"]) in csv.list_dialects():
         dialect = csv.get_dialect(dialect)
 
     _validate_dialect(dialect)

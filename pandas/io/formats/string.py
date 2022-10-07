@@ -165,11 +165,9 @@ class StringFormatter:
         width, _ = get_terminal_size()
         dif = max_len - width
         # '+ 1' to avoid too wide repr (GH PR #17023)
-        adj_dif = dif + 1
         col_lens = Series([Series(ele).apply(len).max() for ele in strcols])
-        n_cols = len(col_lens)
         counter = 0
-        while adj_dif > 0 and n_cols > 1:
+        while (adj_dif := dif + 1) > 0 and (n_cols := len(col_lens)) > 1:
             counter += 1
             mid = round(n_cols / 2)
             mid_ix = col_lens.index[mid]

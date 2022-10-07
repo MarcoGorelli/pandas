@@ -351,10 +351,9 @@ class TestCommon:
 
     def test_drop_duplicates_no_duplicates(self, index_flat):
         # MultiIndex is tested separately
-        index = index_flat
 
         # make unique index
-        if isinstance(index, RangeIndex):
+        if isinstance((index := index_flat), RangeIndex):
             # RangeIndex cannot have duplicates
             unique_idx = index
         else:

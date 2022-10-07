@@ -937,9 +937,8 @@ class PlotAccessor(PandasObject):
         # The original data structured can be transformed before passed to the
         # backend. For example, for DataFrame is common to set the index as the
         # `x` parameter, and return a Series with the parameter `y` as values.
-        data = self._parent.copy()
 
-        if isinstance(data, ABCSeries):
+        if isinstance((data := self._parent.copy()), ABCSeries):
             kwargs["reuse_plot"] = True
 
         if kind in self._dataframe_kinds:
@@ -1845,11 +1844,10 @@ def _load_backend(backend: str) -> types.ModuleType:
 
     found_backend = False
 
-    eps = entry_points()
     key = "pandas_plotting_backends"
     # entry_points lost dict API ~ PY 3.10
     # https://github.com/python/importlib_metadata/issues/298
-    if hasattr(eps, "select"):
+    if hasattr((eps := entry_points()), "select"):
         # error: "Dict[str, Tuple[EntryPoint, ...]]" has no attribute "select"
         entry = eps.select(group=key)  # type: ignore[attr-defined]
     else:

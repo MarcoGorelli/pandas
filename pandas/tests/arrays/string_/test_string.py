@@ -225,12 +225,11 @@ def test_comparison_methods_scalar_pd_na(comparison_op, dtype):
 
 
 def test_comparison_methods_scalar_not_string(comparison_op, dtype):
-    op_name = f"__{comparison_op.__name__}__"
 
     a = pd.array(["a", None, "c"], dtype=dtype)
     other = 42
 
-    if op_name not in ["__eq__", "__ne__"]:
+    if (op_name := f"__{comparison_op.__name__}__") not in ["__eq__", "__ne__"]:
         with pytest.raises(TypeError, match="not supported between"):
             getattr(a, op_name)(other)
 

@@ -490,9 +490,8 @@ class DatetimeTimedeltaMixin(DatetimeIndexOpsMixin):
         # after sorting, the intersection always starts with the right index
         # and ends with the index of which the last elements is smallest
         end = min(left[-1], right[-1])
-        start = right[0]
 
-        if end < start:
+        if end < (start := right[0]):
             result = self[:0]
         else:
             lslice = slice(*left.slice_locs(start, end))
@@ -567,11 +566,10 @@ class DatetimeTimedeltaMixin(DatetimeIndexOpsMixin):
         else:
             left, right = other, self
 
-        left_end = left[-1]
         right_end = right[-1]
 
         # concatenate
-        if left_end < right_end:
+        if (left_end := left[-1]) < right_end:
             loc = right.searchsorted(left_end, side="right")
             right_chunk = right._values[loc:]
             dates = concat_compat([left._values, right_chunk])
@@ -686,8 +684,7 @@ class DatetimeTimedeltaMixin(DatetimeIndexOpsMixin):
 
     @doc(NDArrayBackedExtensionIndex.insert)
     def insert(self, loc: int, item):
-        result = super().insert(loc, item)
-        if isinstance(result, type(self)):
+        if isinstance((result := super().insert(loc, item)), type(self)):
             # i.e. parent class method did not cast
             result._data._freq = self._get_insert_freq(loc, item)
         return result

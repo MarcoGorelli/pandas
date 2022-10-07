@@ -466,10 +466,9 @@ def test_maybe_promote_timedelta64_with_any(timedelta64_dtype, any_numpy_dtype_r
 def test_maybe_promote_any_with_timedelta64(
     any_numpy_dtype_reduced, fill_value, request
 ):
-    dtype = np.dtype(any_numpy_dtype_reduced)
 
     # filling anything but timedelta with timedelta casts to object
-    if is_timedelta64_dtype(dtype):
+    if is_timedelta64_dtype(dtype := np.dtype(any_numpy_dtype_reduced)):
         expected_dtype = dtype
         # for timedelta dtypes, scalar values get cast to pd.Timedelta.value
         exp_val_for_scalar = pd.Timedelta(fill_value).to_timedelta64()

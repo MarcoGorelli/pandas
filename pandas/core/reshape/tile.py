@@ -414,8 +414,7 @@ def _bins_to_cuts(
         result = Categorical.from_codes(ids, categories=bins, ordered=True)
         return result, bins
 
-    unique_bins = algos.unique(bins)
-    if len(unique_bins) < len(bins) and len(bins) != 2:
+    if len(unique_bins := algos.unique(bins)) < len(bins) and len(bins) != 2:
         if duplicates == "raise":
             raise ValueError(
                 f"Bin edges must be unique: {repr(bins)}.\n"

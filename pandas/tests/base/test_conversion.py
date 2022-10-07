@@ -255,9 +255,8 @@ def test_numpy_array_all_dtypes(any_numpy_dtype):
     ],
 )
 def test_array(arr, attr, index_or_series, request):
-    box = index_or_series
     warn = None
-    if arr.dtype.name in ("Sparse[int64, 0]") and box is pd.Index:
+    if arr.dtype.name in ("Sparse[int64, 0]") and (box := index_or_series) is pd.Index:
         mark = pytest.mark.xfail(reason="Index cannot yet store sparse dtype")
         request.node.add_marker(mark)
         warn = FutureWarning

@@ -552,8 +552,7 @@ class Apply(metaclass=abc.ABCMeta):
         # Support for `frame.transform('method')`
         # Some methods (shift, etc.) require the axis argument, others
         # don't, so inspect and insert if necessary.
-        func = getattr(obj, f, None)
-        if callable(func):
+        if callable(func := getattr(obj, f, None)):
             sig = inspect.getfullargspec(func)
             arg_names = (*sig.args, *sig.kwonlyargs)
             if self.axis != 0 and (
@@ -828,8 +827,7 @@ class FrameApply(NDFrameApply):
             """
 
             def wrapper(*args, **kwargs):
-                result = func(*args, **kwargs)
-                if isinstance(result, str):
+                if isinstance((result := func(*args, **kwargs)), str):
                     result = np.array(result, dtype=object)
                 return result
 
@@ -909,8 +907,7 @@ class FrameApply(NDFrameApply):
         # the default dtype of an empty Series will be `object`, but this
         # code can be hit by df.mean() where the result should have dtype
         # float64 even if it's an empty Series.
-        constructor_sliced = self.obj._constructor_sliced
-        if constructor_sliced is Series:
+        if (constructor_sliced := self.obj._constructor_sliced) is Series:
             result = create_series_with_explicit_dtype(
                 results, dtype_if_empty=np.float64
             )
@@ -1108,8 +1105,7 @@ class SeriesApply(NDFrameApply):
         return self.apply_standard()
 
     def agg(self):
-        result = super().agg()
-        if result is None:
+        if (result := super().agg()) is None:
             f = self.f
             kwargs = self.kwargs
 

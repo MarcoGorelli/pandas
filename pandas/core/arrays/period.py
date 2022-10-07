@@ -785,8 +785,7 @@ class PeriodArray(dtl.DatelikeOps, libperiod.PeriodMixin):
         -------
         PeriodArray
         """
-        freq = self.freq
-        if not isinstance(freq, Tick):
+        if not isinstance((freq := self.freq), Tick):
             # We cannot add timedelta-like to non-tick PeriodArray
             raise TypeError(
                 f"Cannot add or subtract timedelta64[ns] dtype from {self.dtype}"

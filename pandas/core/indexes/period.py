@@ -68,8 +68,7 @@ _shared_doc_kwargs = {
 
 def _new_PeriodIndex(cls, **d):
     # GH13277 for unpickling
-    values = d.pop("data")
-    if values.dtype == "int64":
+    if (values := d.pop("data")).dtype == "int64":
         freq = d.pop("freq", None)
         values = PeriodArray(values, freq=freq)
         return cls._simple_new(values, **d)

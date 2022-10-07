@@ -678,8 +678,7 @@ def test_numeric_only_frame(arithmetic_win_operators, numeric_only):
     df = DataFrame({"a": [1], "b": 2, "c": 3})
     df["c"] = df["c"].astype(object)
     ewm = df.ewm(span=2, min_periods=1)
-    op = getattr(ewm, kernel, None)
-    if op is not None:
+    if (op := getattr(ewm, kernel, None)) is not None:
         result = op(numeric_only=numeric_only)
 
         columns = ["a", "b"] if numeric_only else ["a", "b", "c"]
@@ -717,8 +716,7 @@ def test_numeric_only_series(arithmetic_win_operators, numeric_only, dtype):
     kernel = arithmetic_win_operators
     ser = Series([1], dtype=dtype)
     ewm = ser.ewm(span=2, min_periods=1)
-    op = getattr(ewm, kernel, None)
-    if op is None:
+    if (op := getattr(ewm, kernel, None)) is None:
         # Nothing to test
         return
     if numeric_only and dtype is object:

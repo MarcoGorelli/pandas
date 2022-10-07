@@ -193,9 +193,8 @@ c,4,5
 @xfail_pyarrow
 def test_read_csv_low_memory_no_rows_with_index(all_parsers):
     # see gh-21141
-    parser = all_parsers
 
-    if not parser.low_memory:
+    if not (parser := all_parsers).low_memory:
         pytest.skip("This is a low-memory specific test")
 
     data = """A,B,C

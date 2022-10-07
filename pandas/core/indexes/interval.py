@@ -541,9 +541,9 @@ class IntervalIndex(ExtensionIndex):
         # ensure consistency with IntervalIndex subtype
         # error: Item "ExtensionDtype"/"dtype[Any]" of "Union[dtype[Any],
         # ExtensionDtype]" has no attribute "subtype"
-        subtype = self.dtype.subtype  # type: ignore[union-attr]
+        # type: ignore[union-attr]
 
-        if not is_dtype_equal(subtype, key_dtype):
+        if not is_dtype_equal((subtype := self.dtype.subtype), key_dtype):
             raise ValueError(
                 f"Cannot index an IntervalIndex of subtype {subtype} with "
                 f"values of dtype {key_dtype}"

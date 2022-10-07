@@ -292,8 +292,7 @@ class XportReader(ReaderBase, abc.Iterator):
         self.filepath_or_buffer.seek(0)
 
         # read file header
-        line1 = self._get_row()
-        if line1 != _correct_line1:
+        if (line1 := self._get_row()) != _correct_line1:
             if "**COMPRESSED**" in line1:
                 # this was created with the PROC CPORT method and can't be read
                 # https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/movefile/p1bm6aqp3fw4uin1hucwh718f6kp.htm
@@ -304,8 +303,7 @@ class XportReader(ReaderBase, abc.Iterator):
 
         line2 = self._get_row()
         fif = [["prefix", 24], ["version", 8], ["OS", 8], ["_", 24], ["created", 16]]
-        file_info = _split_line(line2, fif)
-        if file_info["prefix"] != "SAS     SAS     SASLIB":
+        if (file_info := _split_line(line2, fif))["prefix"] != "SAS     SAS     SASLIB":
             raise ValueError("Header record has invalid prefix.")
         file_info["created"] = _parse_date(file_info["created"])
         self.file_info = file_info
@@ -343,9 +341,8 @@ class XportReader(ReaderBase, abc.Iterator):
         # read field names
         types = {1: "numeric", 2: "char"}
         fieldcount = int(self._get_row()[54:58])
-        datalength = fieldnamelength * fieldcount
         # round up to nearest 80
-        if datalength % 80:
+        if (datalength := fieldnamelength * fieldcount) % 80:
             datalength += 80 - datalength % 80
         fielddata = self.filepath_or_buffer.read(datalength)
         fields = []
@@ -474,8 +471,7 @@ class XportReader(ReaderBase, abc.Iterator):
             nrows = self.nobs
 
         read_lines = min(nrows, self.nobs - self._lines_read)
-        read_len = read_lines * self.record_length
-        if read_len <= 0:
+        if (read_len := read_lines * self.record_length) <= 0:
             self.close()
             raise StopIteration
         raw = self.filepath_or_buffer.read(read_len)

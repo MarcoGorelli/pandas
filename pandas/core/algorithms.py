@@ -297,8 +297,7 @@ def _check_object_for_strings(values: np.ndarray) -> str:
     -------
     str
     """
-    ndtype = values.dtype.name
-    if ndtype == "object":
+    if (ndtype := values.dtype.name) == "object":
 
         # it's cheaper to use a String Hash Table than Object; we infer
         # including nulls because that is the only difference between
@@ -555,8 +554,7 @@ def factorize_array(
     codes : ndarray[np.intp]
     uniques : ndarray
     """
-    ignore_na = na_sentinel is not None
-    if not ignore_na:
+    if not (ignore_na := na_sentinel is not None):
         na_sentinel = -1
 
     original = values

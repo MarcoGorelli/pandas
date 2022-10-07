@@ -564,7 +564,6 @@ class TestDatetimeIndexComparisons:
 
     def test_comparison_tzawareness_compat(self, comparison_op, box_with_array):
         # GH#18162
-        op = comparison_op
         box = box_with_array
 
         dr = date_range("2016-01-01", periods=6)
@@ -578,7 +577,7 @@ class TestDatetimeIndexComparisons:
         else:
             tolist = list
 
-        if op not in [operator.eq, operator.ne]:
+        if (op := comparison_op) not in [operator.eq, operator.ne]:
             msg = (
                 r"Invalid comparison between dtype=datetime64\[ns.*\] "
                 "and (Timestamp|DatetimeArray|list|ndarray)"
@@ -653,13 +652,12 @@ class TestDatetimeIndexComparisons:
     def test_scalar_comparison_tzawareness(
         self, comparison_op, other, tz_aware_fixture, box_with_array
     ):
-        op = comparison_op
         tz = tz_aware_fixture
         dti = date_range("2016-01-01", periods=2, tz=tz)
 
         dtarr = tm.box_expected(dti, box_with_array)
         xbox = get_upcast_box(dtarr, other, True)
-        if op in [operator.eq, operator.ne]:
+        if (op := comparison_op) in [operator.eq, operator.ne]:
             exbool = op is operator.ne
             expected = np.array([exbool, exbool], dtype=bool)
             expected = tm.box_expected(expected, xbox)
@@ -1273,8 +1271,7 @@ class TestDatetime64DateOffsetArithmetic:
 
     def test_dti_add_tick_tzaware(self, tz_aware_fixture, box_with_array):
         # GH#21610, GH#22163 ensure DataFrame doesn't return object-dtype
-        tz = tz_aware_fixture
-        if tz == "US/Pacific":
+        if (tz := tz_aware_fixture) == "US/Pacific":
             dates = date_range("2012-11-01", periods=3, tz=tz)
             offset = dates + pd.offsets.Hour(5)
             assert dates[0] + pd.offsets.Hour(5) == offset[0]

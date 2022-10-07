@@ -821,8 +821,7 @@ class IntervalArray(IntervalMixin, ExtensionArray):
         if not len(self):
             return self._na_value
 
-        mask = self.isna()
-        if mask.any():
+        if (mask := self.isna()).any():
             if not skipna:
                 return self._na_value
             obj = self[~mask]
@@ -838,8 +837,7 @@ class IntervalArray(IntervalMixin, ExtensionArray):
         if not len(self):
             return self._na_value
 
-        mask = self.isna()
-        if mask.any():
+        if (mask := self.isna()).any():
             if not skipna:
                 return self._na_value
             obj = self[~mask]
@@ -1468,8 +1466,7 @@ class IntervalArray(IntervalMixin, ExtensionArray):
             ],
             names=["left", "right"],
         )
-        mask = self.isna()
-        if mask.any():
+        if (mask := self.isna()).any():
             # if there are missing values, set validity bitmap also on the array level
             null_bitmap = pyarrow.array(~mask).buffers()[1]
             storage_array = pyarrow.StructArray.from_buffers(
@@ -1681,8 +1678,7 @@ class IntervalArray(IntervalMixin, ExtensionArray):
         """
         nc = combined.view("i8").reshape(-1, 2)
 
-        dtype = self._left.dtype
-        if needs_i8_conversion(dtype):
+        if needs_i8_conversion(dtype := self._left.dtype):
             # error: "Type[ndarray[Any, Any]]" has no attribute "_from_sequence"
             new_left = type(self._left)._from_sequence(  # type: ignore[attr-defined]
                 nc[:, 0], dtype=dtype

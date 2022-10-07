@@ -52,8 +52,7 @@ def get_jit_arguments(
     if engine_kwargs is None:
         engine_kwargs = {}
 
-    nopython = engine_kwargs.get("nopython", True)
-    if kwargs and nopython:
+    if kwargs and (nopython := engine_kwargs.get("nopython", True)):
         raise NumbaUtilError(
             "numba does not support kwargs with nopython=True: "
             "https://github.com/numba/numba/issues/2916"

@@ -1244,8 +1244,7 @@ class FixedWidthReader(abc.Iterator):
         # Regex escape the delimiters
         delimiters = "".join([rf"\{x}" for x in self.delimiter])
         pattern = re.compile(f"([^{delimiters}]+)")
-        rows = self.get_rows(infer_nrows, skiprows)
-        if not rows:
+        if not (rows := self.get_rows(infer_nrows, skiprows)):
             raise EmptyDataError("No rows from which to infer column width")
         max_len = max(map(len, rows))
         mask = np.zeros(max_len + 1, dtype=int)

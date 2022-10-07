@@ -74,8 +74,7 @@ class HTMLFormatter:
         }
 
     def to_string(self) -> str:
-        lines = self.render()
-        if any(isinstance(x, str) for x in lines):
+        if any(isinstance(x, str) for x in (lines := self.render())):
             lines = [str(x) for x in lines]
         return "\n".join(lines)
 
@@ -157,9 +156,8 @@ class HTMLFormatter:
         -------
         A written <th> cell.
         """
-        col_space = self.col_space.get(s, None)
 
-        if header and col_space is not None:
+        if header and (col_space := self.col_space.get(s, None)) is not None:
             tags = tags or ""
             tags += f'style="min-width: {col_space};"'
 

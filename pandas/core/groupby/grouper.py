@@ -302,8 +302,7 @@ class Grouper:
     @final
     @property
     def ax(self) -> Index:
-        index = self._gpr_index
-        if index is None:
+        if (index := self._gpr_index) is None:
             raise ValueError("_set_grouper must be called before ax is accessed")
         return index
 
@@ -493,8 +492,7 @@ class Grouping:
         # we have a single grouper which may be a myriad of things,
         # some of which are dependent on the passing in level
 
-        ilevel = self._ilevel
-        if ilevel is not None:
+        if (ilevel := self._ilevel) is not None:
             mapper = self.grouping_vector
             # In extant tests, the new self.grouping_vector matches
             #  `index.get_level_values(ilevel)` whenever
@@ -570,8 +568,7 @@ class Grouping:
 
     @cache_readonly
     def name(self) -> Hashable:
-        ilevel = self._ilevel
-        if ilevel is not None:
+        if (ilevel := self._ilevel) is not None:
             return self._index.names[ilevel]
 
         if isinstance(self._orig_grouper, (Index, Series)):

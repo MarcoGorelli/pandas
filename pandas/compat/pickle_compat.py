@@ -237,10 +237,9 @@ Unpickler.dispatch[pkl.NEWOBJ[0]] = load_newobj
 def load_newobj_ex(self) -> None:
     kwargs = self.stack.pop()
     args = self.stack.pop()
-    cls = self.stack.pop()
 
     # compat
-    if issubclass(cls, Index):
+    if issubclass((cls := self.stack.pop()), Index):
         obj = object.__new__(cls)
     else:
         obj = cls.__new__(cls, *args, **kwargs)

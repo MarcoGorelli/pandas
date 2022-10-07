@@ -323,9 +323,8 @@ def eval(
     else:
         # ops.BinOp; for internal compat, not intended to be passed by users
         exprs = [expr]
-    multi_line = len(exprs) > 1
 
-    if multi_line and target is None:
+    if (multi_line := len(exprs) > 1) and target is None:
         raise ValueError(
             "multi-line expressions are only valid in the "
             "context of data, use DataFrame.eval"

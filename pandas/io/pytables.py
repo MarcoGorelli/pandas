@@ -466,8 +466,7 @@ def _is_metadata_of(group: Node, parent_group: Node) -> bool:
     if group._v_depth <= parent_group._v_depth:
         return False
 
-    current = group
-    while current._v_depth > 1:
+    while (current := group)._v_depth > 1:
         parent = current._v_parent
         if parent == parent_group and current._v_name == "meta":
             return True
@@ -616,8 +615,7 @@ class HDFStore:
         check for existence of this key
         can match the exact pathname or the pathnm w/o the leading '/'
         """
-        node = self.get_node(key)
-        if node is not None:
+        if (node := self.get_node(key)) is not None:
             name = node._v_pathname
             if name == key or name[1:] == key:
                 return True
@@ -848,8 +846,7 @@ class HDFStore:
         object
             Retrieved object from file.
         """
-        group = self.get_node(key)
-        if group is None:
+        if (group := self.get_node(key)) is None:
             raise KeyError(f"No object named {key} in the file")
 
         # create the storer and axes
@@ -904,8 +901,7 @@ class HDFStore:
         stop  : integer (defaults to None), row number to stop selection
         """
         where = _ensure_term(where, scope_level=1)
-        tbl = self.get_storer(key)
-        if not isinstance(tbl, Table):
+        if not isinstance((tbl := self.get_storer(key)), Table):
             raise TypeError("can only read_coordinates with a table")
         return tbl.read_coordinates(where=where, start=start, stop=stop)
 
@@ -944,8 +940,7 @@ class HDFStore:
             is part of a data block)
 
         """
-        tbl = self.get_storer(key)
-        if not isinstance(tbl, Table):
+        if not isinstance((tbl := self.get_storer(key)), Table):
             raise TypeError("can only read_column with a table")
         return tbl.read_column(column=column, start=start, stop=stop)
 
@@ -1519,8 +1514,7 @@ class HDFStore:
 
     def get_storer(self, key: str) -> GenericFixed | Table:
         """return the storer object for a key, raise if not in the file"""
-        group = self.get_node(key)
-        if group is None:
+        if (group := self.get_node(key)) is None:
             raise KeyError(f"No object named {key} in the file")
 
         s = self._create_storer(group)
@@ -2219,8 +2213,7 @@ class IndexCol:
 
     def set_info(self, info) -> None:
         """set my state from the passed info"""
-        idx = info.get(self.name)
-        if idx is not None:
+        if (idx := info.get(self.name)) is not None:
             self.__dict__.update(idx)
 
     def set_attr(self) -> None:
@@ -2657,8 +2650,7 @@ class Fixed:
     def __repr__(self) -> str:
         """return a pretty representation of myself"""
         self.infer_axes()
-        s = self.shape
-        if s is not None:
+        if (s := self.shape) is not None:
             if isinstance(s, (list, tuple)):
                 jshape = ",".join([pprint_thing(x) for x in s])
                 s = f"[{jshape}]"
@@ -3243,8 +3235,7 @@ class BlockManagerFixed(GenericFixed):
         if isinstance(obj._mgr, ArrayManager):
             obj = obj._as_manager("block")
 
-        data = obj._mgr
-        if not data.is_consolidated():
+        if not (data := obj._mgr).is_consolidated():
             data = data.consolidate()
 
         self.attrs.ndim = data.ndim
@@ -4435,8 +4426,7 @@ class AppendableTable(Table):
             if not np.prod(v.shape):
                 return
 
-        nrows = indexes[0].shape[0]
-        if nrows != len(rows):
+        if (nrows := indexes[0].shape[0]) != len(rows):
             rows = np.empty(nrows, dtype=self.dtype)
         names = self.dtype.names
         nindexes = len(indexes)
@@ -4485,9 +4475,8 @@ class AppendableTable(Table):
 
         # delete the rows in reverse order
         sorted_series = Series(values).sort_values()
-        ln = len(sorted_series)
 
-        if ln:
+        if ln := len(sorted_series):
 
             # construct groups of consecutive rows
             diff = sorted_series.diff()

@@ -77,8 +77,7 @@ class NumericDtype(BaseMaskedDtype):
 
         array_class = self.construct_array_type()
 
-        pyarrow_type = pyarrow.from_numpy_dtype(self.type)
-        if not array.type.equals(pyarrow_type):
+        if not array.type.equals(pyarrow_type := pyarrow.from_numpy_dtype(self.type)):
             # test_from_arrow_type_error raise for string, but allow
             #  through itemsize conversion GH#31896
             rt_dtype = pandas_dtype(array.type.to_pandas_dtype())
@@ -157,8 +156,7 @@ def _coerce_to_data_and_mask(values, mask, dtype, copy, dtype_cls, default_dtype
     if dtype is not None:
         dtype = dtype_cls._standardize_dtype(dtype)
 
-    cls = dtype_cls.construct_array_type()
-    if isinstance(values, cls):
+    if isinstance(values, (cls := dtype_cls.construct_array_type())):
         values, mask = values._data, values._mask
         if dtype is not None:
             values = values.astype(dtype.numpy_dtype, copy=False)

@@ -368,7 +368,6 @@ def frame_arith_method_with_reindex(left: DataFrame, right: DataFrame, op) -> Da
 
     new_left = left.iloc[:, lcols]
     new_right = right.iloc[:, rcols]
-    result = op(new_left, new_right)
 
     # Do the join on the columns instead of using align_method_FRAME
     #  to avoid constructing two potentially large/sparse DataFrames
@@ -376,7 +375,7 @@ def frame_arith_method_with_reindex(left: DataFrame, right: DataFrame, op) -> Da
         right.columns, how="outer", level=None, return_indexers=True
     )
 
-    if result.columns.has_duplicates:
+    if (result := op(new_left, new_right)).columns.has_duplicates:
         # Avoid reindexing with a duplicate axis.
         # https://github.com/pandas-dev/pandas/issues/35194
         indexer, _ = result.columns.get_indexer_non_unique(join_columns)

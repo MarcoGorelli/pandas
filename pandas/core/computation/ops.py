@@ -126,10 +126,9 @@ class Term:
          ('locals', 'key'),
          ('globals', 'key')]
         """
-        key = self.name
 
         # if it's a variable name (otherwise a constant)
-        if isinstance(key, str):
+        if isinstance((key := self.name), str):
             self.env.swapkey(self.local_name, key, new_value=value)
 
         self.value = value

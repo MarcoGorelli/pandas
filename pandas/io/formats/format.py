@@ -367,9 +367,8 @@ class SeriesFormatter:
         return str(footer)
 
     def _get_formatted_index(self) -> tuple[list[str], bool]:
-        index = self.tr_series.index
 
-        if isinstance(index, MultiIndex):
+        if isinstance((index := self.tr_series.index), MultiIndex):
             have_header = any(name for name in index.names)
             fmt_index = index.format(names=True)
         else:
@@ -809,8 +808,7 @@ class DataFrameFormatter:
             - tr_col_num
         """
         assert self.max_cols_fitted is not None
-        col_num = self.max_cols_fitted // 2
-        if col_num >= 1:
+        if (col_num := self.max_cols_fitted // 2) >= 1:
             left = self.tr_frame.iloc[:, :col_num]
             right = self.tr_frame.iloc[:, -col_num:]
             self.tr_frame = concat((left, right), axis=1)
@@ -834,8 +832,7 @@ class DataFrameFormatter:
             - tr_row_num
         """
         assert self.max_rows_fitted is not None
-        row_num = self.max_rows_fitted // 2
-        if row_num >= 1:
+        if (row_num := self.max_rows_fitted // 2) >= 1:
             head = self.tr_frame.iloc[:row_num, :]
             tail = self.tr_frame.iloc[-row_num:, :]
             self.tr_frame = concat((head, tail))
@@ -919,9 +916,7 @@ class DataFrameFormatter:
     def _get_formatted_column_labels(self, frame: DataFrame) -> list[list[str]]:
         from pandas.core.indexes.multi import sparsify_labels
 
-        columns = frame.columns
-
-        if isinstance(columns, MultiIndex):
+        if isinstance((columns := frame.columns), MultiIndex):
             fmt_columns = columns.format(sparsify=False, adjoin=False)
             fmt_columns = list(zip(*fmt_columns))
             dtypes = self.frame.dtypes._values
@@ -999,8 +994,7 @@ class DataFrameFormatter:
 
     def _get_column_name_list(self) -> list[Hashable]:
         names: list[Hashable] = []
-        columns = self.frame.columns
-        if isinstance(columns, MultiIndex):
+        if isinstance((columns := self.frame.columns), MultiIndex):
             names.extend("" if name is None else name for name in columns.names)
         else:
             names.append("" if columns.name is None else columns.name)
@@ -1412,8 +1406,7 @@ class GenericArrayFormatter:
             # vals may have 2 or more dimensions
             & np.all(notna(vals), axis=tuple(range(1, len(vals.shape))))
         )
-        leading_space = self.leading_space
-        if leading_space is None:
+        if (leading_space := self.leading_space) is None:
             leading_space = is_float_type.any()
 
         fmt_values = []
@@ -1631,9 +1624,8 @@ class Datetime64Formatter(GenericArrayFormatter):
 
     def _format_strings(self) -> list[str]:
         """we by definition have DO NOT have a TZ"""
-        values = self.values
 
-        if not isinstance(values, DatetimeIndex):
+        if not isinstance((values := self.values), DatetimeIndex):
             values = DatetimeIndex(values)
 
         if self.formatter is not None and callable(self.formatter):
@@ -1649,8 +1641,7 @@ class ExtensionArrayFormatter(GenericArrayFormatter):
     def _format_strings(self) -> list[str]:
         values = extract_array(self.values, extract_numpy=True)
 
-        formatter = self.formatter
-        if formatter is None:
+        if (formatter := self.formatter) is None:
             formatter = values._formatter(boxed=True)
 
         if isinstance(values, Categorical):
@@ -1982,7 +1973,6 @@ def _trim_zeros_float(
     all numbers containing decimals, leaving just one if
     necessary.
     """
-    trimmed = str_floats
     number_regex = re.compile(rf"^\s*[\+-]?[0-9]+\{decimal}[0-9]*$")
 
     def is_number_with_decimal(x) -> bool:
@@ -1999,7 +1989,7 @@ def _trim_zeros_float(
         numbers = [x for x in values if is_number_with_decimal(x)]
         return len(numbers) > 0 and all(x.endswith("0") for x in numbers)
 
-    while should_trim(trimmed):
+    while should_trim(trimmed := str_floats):
         trimmed = [x[:-1] if is_number_with_decimal(x) else x for x in trimmed]
 
     # leave one 0 after the decimal points if need be.

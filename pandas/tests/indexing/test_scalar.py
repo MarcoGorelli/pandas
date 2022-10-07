@@ -22,8 +22,7 @@ class TestScalar(Base):
     @pytest.mark.parametrize("kind", ["series", "frame"])
     @pytest.mark.parametrize("col", ["ints", "uints"])
     def test_iat_set_ints(self, kind, col):
-        f = getattr(self, kind)[col]
-        if f is not None:
+        if (f := getattr(self, kind)[col]) is not None:
             indices = self.generate_indices(f, True)
             for i in indices:
                 f.iat[i] = 1
@@ -33,8 +32,7 @@ class TestScalar(Base):
     @pytest.mark.parametrize("kind", ["series", "frame"])
     @pytest.mark.parametrize("col", ["labels", "ts", "floats"])
     def test_iat_set_other(self, kind, col):
-        f = getattr(self, kind)[col]
-        if f is not None:
+        if (f := getattr(self, kind)[col]) is not None:
             msg = "iAt based indexing can only have integer indexers"
             with pytest.raises(ValueError, match=msg):
                 indices = self.generate_indices(f, False)
@@ -46,8 +44,7 @@ class TestScalar(Base):
     @pytest.mark.parametrize("kind", ["series", "frame"])
     @pytest.mark.parametrize("col", ["ints", "uints", "labels", "ts", "floats"])
     def test_at_set_ints_other(self, kind, col):
-        f = getattr(self, kind)[col]
-        if f is not None:
+        if (f := getattr(self, kind)[col]) is not None:
             indices = self.generate_indices(f, False)
             for i in indices:
                 f.at[i] = 1

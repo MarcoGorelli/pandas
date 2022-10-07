@@ -775,8 +775,7 @@ class DatetimeTZDtype(PandasExtensionDtype):
             )
 
         msg = f"Cannot construct a 'DatetimeTZDtype' from '{string}'"
-        match = cls._match.match(string)
-        if match:
+        if match := cls._match.match(string):
             d = match.groupdict()
             try:
                 return cls(unit=d["unit"], tz=d["tz"])

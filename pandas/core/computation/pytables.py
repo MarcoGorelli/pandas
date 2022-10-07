@@ -441,13 +441,12 @@ class PyTablesExprVisitor(BaseExprVisitor):
         # only allow simple subscripts
 
         value = self.visit(node.value)
-        slobj = self.visit(node.slice)
         try:
             value = value.value
         except AttributeError:
             pass
 
-        if isinstance(slobj, Term):
+        if isinstance((slobj := self.visit(node.slice)), Term):
             # In py39 np.ndarray lookups with Term containing int raise
             slobj = slobj.value
 
@@ -462,8 +461,7 @@ class PyTablesExprVisitor(BaseExprVisitor):
         attr = node.attr
         value = node.value
 
-        ctx = type(node.ctx)
-        if ctx == ast.Load:
+        if (ctx := type(node.ctx)) == ast.Load:
             # resolve the value
             resolved = self.visit(value)
 

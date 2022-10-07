@@ -250,9 +250,8 @@ def test_really_large_scalar(large_val, signed, transform, errors):
     val = -large_val if signed else large_val
 
     val = transform(val)
-    val_is_string = isinstance(val, str)
 
-    if val_is_string and errors in (None, "raise"):
+    if (val_is_string := isinstance(val, str)) and errors in (None, "raise"):
         msg = "Integer out of range. at position 0"
         with pytest.raises(ValueError, match=msg):
             to_numeric(val, **kwargs)
@@ -394,9 +393,8 @@ def test_period(request, transform_assert_equal):
     transform, assert_equal = transform_assert_equal
 
     idx = pd.period_range("2011-01", periods=3, freq="M", name="")
-    inp = transform(idx)
 
-    if not isinstance(inp, Index):
+    if not isinstance((inp := transform(idx)), Index):
         request.node.add_marker(
             pytest.mark.xfail(reason="Missing PeriodDtype support in to_numeric")
         )

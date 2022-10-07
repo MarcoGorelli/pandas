@@ -235,8 +235,7 @@ def evaluate(op, a, b, use_numexpr: bool = True):
     use_numexpr : bool, default True
         Whether to try to use numexpr.
     """
-    op_str = _op_str_mapping[op]
-    if op_str is not None:
+    if (op_str := _op_str_mapping[op]) is not None:
         if use_numexpr:
             # error: "None" not callable
             return _evaluate(op, op_str, a, b)  # type: ignore[misc]

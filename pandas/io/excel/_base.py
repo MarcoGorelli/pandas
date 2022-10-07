@@ -593,8 +593,7 @@ class BaseExcelReader(metaclass=abc.ABCMeta):
         pass
 
     def raise_if_bad_sheet_by_index(self, index: int) -> None:
-        n_sheets = len(self.sheet_names)
-        if index >= n_sheets:
+        if index >= (n_sheets := len(self.sheet_names)):
             raise ValueError(
                 f"Worksheet index {index} is invalid, {n_sheets} worksheets found"
             )
@@ -625,8 +624,7 @@ class BaseExcelReader(metaclass=abc.ABCMeta):
         int
         """
         i = 0
-        rows_used_so_far = 0
-        while rows_used_so_far < rows_to_use:
+        while (rows_used_so_far := 0) < rows_to_use:
             if not skiprows(i):
                 rows_used_so_far += 1
             i += 1

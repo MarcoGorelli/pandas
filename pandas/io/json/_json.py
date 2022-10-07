@@ -1388,8 +1388,7 @@ class FrameParser(Parser):
             return
 
         # our columns to parse
-        convert_dates_list_bool = self.convert_dates
-        if isinstance(convert_dates_list_bool, bool):
+        if isinstance((convert_dates_list_bool := self.convert_dates), bool):
             convert_dates_list_bool = []
         convert_dates = set(convert_dates_list_bool)
 

@@ -211,8 +211,7 @@ class DecimalArray(OpsMixin, ExtensionScalarOpsMixin, ExtensionArray):
 
     @property
     def nbytes(self) -> int:
-        n = len(self)
-        if n:
+        if n := len(self):
             return n * sys.getsizeof(self[0])
         return 0
 

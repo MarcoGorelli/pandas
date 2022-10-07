@@ -1424,8 +1424,7 @@ class ExtensionArray:
         ------
         TypeError : subclass does not define reductions
         """
-        meth = getattr(self, name, None)
-        if meth is None:
+        if (meth := getattr(self, name, None)) is None:
             raise TypeError(
                 f"'{type(self).__name__}' with dtype {self.dtype} "
                 f"does not support reduction '{name}'"

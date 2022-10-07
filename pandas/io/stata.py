@@ -338,9 +338,8 @@ def _stata_elapsed_date_to_datetime_vec(dates, fmt) -> Series:
 
     # TODO(non-nano): If/when pandas supports more than datetime64[ns], this
     #  should be improved to use correct range, e.g. datetime[Y] for yearly
-    bad_locs = np.isnan(dates)
     has_bad_values = False
-    if bad_locs.any():
+    if (bad_locs := np.isnan(dates)).any():
         has_bad_values = True
         # reset cache to avoid SettingWithCopy checks (we own the DataFrame and the
         # `dates` Series is used to overwrite itself in the DataFramae)
@@ -1204,8 +1203,7 @@ class StataReader(StataParser, abc.Iterator):
             self._encoding = "utf-8"
 
     def _read_header(self) -> None:
-        first_char = self.path_or_buf.read(1)
-        if struct.unpack("c", first_char)[0] == b"<":
+        if struct.unpack("c", (first_char := self.path_or_buf.read(1)))[0] == b"<":
             self._read_new_header()
         else:
             self._read_old_header(first_char)

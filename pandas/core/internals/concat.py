@@ -161,11 +161,9 @@ def concat_arrays(to_concat: list) -> ArrayLike:
         cls = type(to_concat[0])
         return cls._concat_same_type(to_concat)
 
-    result = np.concatenate(to_concat)
-
     # TODO decide on exact behaviour (we shouldn't do this only for empty result)
     # see https://github.com/pandas-dev/pandas/issues/39817
-    if len(result) == 0:
+    if len(result := np.concatenate(to_concat)) == 0:
         # all empties -> check for bool to not coerce to float
         kinds = {obj.dtype.kind for obj in to_concat_no_proxy}
         if len(kinds) != 1:
@@ -375,8 +373,7 @@ class JoinUnit:
 
     @cache_readonly
     def dtype(self) -> DtypeObj:
-        blk = self.block
-        if blk.values.dtype.kind == "V":
+        if (blk := self.block).values.dtype.kind == "V":
             raise AssertionError("Block is None, no dtype")
 
         if not self.needs_filling:
@@ -640,8 +637,7 @@ def _is_uniform_join_units(join_units: list[JoinUnit]) -> bool:
     _concatenate_join_units (which uses `concat_compat`).
 
     """
-    first = join_units[0].block
-    if first.dtype.kind == "V":
+    if (first := join_units[0].block).dtype.kind == "V":
         return False
     return (
         # exclude cases where a) ju.block is None or b) we have e.g. Int64+int64
@@ -730,8 +726,7 @@ def _combine_concat_plans(plans, concat_axis: AxisInt):
         num_ended = [0]
 
         def _next_or_none(seq):
-            retval = next(seq, None)
-            if retval is None:
+            if (retval := next(seq, None)) is None:
                 num_ended[0] += 1
             return retval
 

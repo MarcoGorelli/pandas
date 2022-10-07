@@ -257,8 +257,7 @@ def test_center_deprecate_warning():
 def test_expanding_sem(frame_or_series):
     # GH: 26476
     obj = frame_or_series([0, 1, 2])
-    result = obj.expanding().sem()
-    if isinstance(result, DataFrame):
+    if isinstance((result := obj.expanding().sem()), DataFrame):
         result = Series(result[0].values)
     expected = Series([np.nan] + [0.707107] * 2)
     tm.assert_series_equal(result, expected)
@@ -663,8 +662,7 @@ def test_numeric_only_frame(arithmetic_win_operators, numeric_only):
     df = DataFrame({"a": [1], "b": 2, "c": 3})
     df["c"] = df["c"].astype(object)
     expanding = df.expanding()
-    op = getattr(expanding, kernel, None)
-    if op is not None:
+    if (op := getattr(expanding, kernel, None)) is not None:
         result = op(numeric_only=numeric_only)
 
         columns = ["a", "b"] if numeric_only else ["a", "b", "c"]

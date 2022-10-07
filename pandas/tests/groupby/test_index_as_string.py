@@ -7,7 +7,6 @@ import pandas._testing as tm
 
 @pytest.fixture(params=[["inner"], ["inner", "outer"]])
 def frame(request):
-    levels = request.param
     df = pd.DataFrame(
         {
             "outer": ["a", "a", "a", "b", "b", "b"],
@@ -16,7 +15,7 @@ def frame(request):
             "B": ["one", "one", "two", "two", "one", "one"],
         }
     )
-    if levels:
+    if levels := request.param:
         df = df.set_index(levels)
 
     return df

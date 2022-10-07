@@ -193,9 +193,8 @@ def test_logical_not():
 
 @pytest.mark.parametrize("shape", [(3,), (3, 3), (1, 2, 3)])
 def test_arithmetic_ndarray(shape, all_arithmetic_functions):
-    op = all_arithmetic_functions
     a = np.zeros(shape)
-    if op.__name__ == "pow":
+    if (op := all_arithmetic_functions).__name__ == "pow":
         a += 5
     result = op(NA, a)
     expected = np.full(a.shape, NA, dtype=object)

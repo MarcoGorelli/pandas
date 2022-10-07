@@ -238,8 +238,7 @@ class PyArrowImpl(BaseImpl):
                 self.api.float64(): pd.Float64Dtype(),
             }
             to_pandas_kwargs["types_mapper"] = mapping.get
-        manager = get_option("mode.data_manager")
-        if manager == "array":
+        if (manager := get_option("mode.data_manager")) == "array":
             to_pandas_kwargs["split_blocks"] = True  # type: ignore[assignment]
 
         path_or_handle, handles, kwargs["filesystem"] = _get_path_or_handle(

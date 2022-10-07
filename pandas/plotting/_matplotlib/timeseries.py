@@ -223,9 +223,7 @@ def use_dynamic_x(ax: Axes, data: DataFrame | Series) -> bool:
     if freq is None:
         return False
 
-    freq_str = _get_period_alias(freq)
-
-    if freq_str is None:
+    if (freq_str := _get_period_alias(freq)) is None:
         return False
 
     # FIXME: hack this for 0.10.1, creating more technical debt...sigh

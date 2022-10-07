@@ -1646,9 +1646,8 @@ def test_compression_read(parser, compression_only):
 
 def test_wrong_compression(parser, compression, compression_only):
     actual_compression = compression
-    attempted_compression = compression_only
 
-    if actual_compression == attempted_compression:
+    if actual_compression == (attempted_compression := compression_only):
         return
 
     errors = {

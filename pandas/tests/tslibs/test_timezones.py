@@ -24,9 +24,8 @@ def test_is_utc(utc_fixture):
 @pytest.mark.parametrize("tz_name", list(pytz.common_timezones))
 def test_cache_keys_are_distinct_for_pytz_vs_dateutil(tz_name):
     tz_p = timezones.maybe_get_tz(tz_name)
-    tz_d = timezones.maybe_get_tz("dateutil/" + tz_name)
 
-    if tz_d is None:
+    if (tz_d := timezones.maybe_get_tz("dateutil/" + tz_name)) is None:
         pytest.skip(tz_name + ": dateutil does not know about this one")
 
     assert timezones._p_tz_cache_key(tz_p) != timezones._p_tz_cache_key(tz_d)

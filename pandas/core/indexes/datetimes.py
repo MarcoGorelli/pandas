@@ -472,8 +472,7 @@ class DatetimeIndex(DatetimeTimedeltaMixin):
             else:
                 this = Index.union(this, other)
 
-        res_name = get_unanimous_names(self, *others)[0]
-        if this.name != res_name:
+        if this.name != (res_name := get_unanimous_names(self, *others)[0]):
             return this.rename(res_name)
         return this
 
@@ -838,8 +837,7 @@ class DatetimeIndex(DatetimeTimedeltaMixin):
                 FutureWarning,
                 stacklevel=find_stack_level(inspect.currentframe()),
             )
-        indexer = mask.nonzero()[0][::step]
-        if len(indexer) == len(self):
+        if len(indexer := mask.nonzero()[0][::step]) == len(self):
             return slice(None)
         else:
             return indexer

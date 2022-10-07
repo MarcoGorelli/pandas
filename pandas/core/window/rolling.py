@@ -407,8 +407,7 @@ class BaseWindow(SelectionMixin):
                 raise TypeError(f"cannot handle this type -> {values.dtype}") from err
 
         # Convert inf to nan for C funcs
-        inf = np.isinf(values)
-        if inf.any():
+        if (inf := np.isinf(values)).any():
             values = np.where(inf, np.nan, values)
 
         return values
@@ -680,8 +679,7 @@ class BaseWindow(SelectionMixin):
         obj = self._create_data(self._selected_obj)
         if self.axis == 1:
             obj = obj.T
-        values = self._prep_values(obj.to_numpy())
-        if values.ndim == 1:
+        if (values := self._prep_values(obj.to_numpy())).ndim == 1:
             values = values.reshape(-1, 1)
         start, end = window_indexer.get_window_bounds(
             num_values=len(values),
@@ -783,8 +781,7 @@ class BaseWindowGroupby(BaseWindow):
         codes = self._grouper.codes
         levels = copy.copy(self._grouper.levels)
 
-        group_indices = self._grouper.indices.values()
-        if group_indices:
+        if group_indices := self._grouper.indices.values():
             indexer = np.concatenate(list(group_indices))
         else:
             indexer = np.array([], dtype=np.intp)
@@ -1873,8 +1870,7 @@ class Rolling(RollingAndExpandingMixin):
             self._raise_monotonic_error("values must be monotonic")
 
     def _raise_monotonic_error(self, msg: str):
-        on = self.on
-        if on is None:
+        if (on := self.on) is None:
             if self.axis == 0:
                 on = "index"
             else:

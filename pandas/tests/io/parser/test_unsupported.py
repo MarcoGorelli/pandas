@@ -175,10 +175,9 @@ x   q   30      3    -0.6662 -0.5243 -0.3580  0.89145  2.5838"""
 
 def test_close_file_handle_on_invalid_usecols(all_parsers):
     # GH 45384
-    parser = all_parsers
 
     error = ValueError
-    if parser.engine == "pyarrow":
+    if (parser := all_parsers).engine == "pyarrow":
         pyarrow = pytest.importorskip("pyarrow")
         error = pyarrow.lib.ArrowKeyError
         if is_ci_environment() and (is_platform_windows() or is_platform_mac()):
@@ -196,8 +195,7 @@ def test_close_file_handle_on_invalid_usecols(all_parsers):
 
 def test_invalid_file_inputs(request, all_parsers):
     # GH#45957
-    parser = all_parsers
-    if parser.engine == "python":
+    if (parser := all_parsers).engine == "python":
         request.node.add_marker(
             pytest.mark.xfail(reason=f"{parser.engine} engine supports lists.")
         )

@@ -156,8 +156,7 @@ def init_qt_clipboard():
         except ImportError:
             from PyQt4.QtGui import QApplication
 
-    app = QApplication.instance()
-    if app is None:
+    if (app := QApplication.instance()) is None:
         app = QApplication([])
 
     def copy_qt(text):
@@ -311,8 +310,7 @@ class CheckedCall:
         super().__setattr__("f", f)
 
     def __call__(self, *args):
-        ret = self.f(*args)
-        if not ret and get_errno():
+        if not (ret := self.f(*args)) and get_errno():
             raise PyperclipWindowsException("Error calling " + self.f.__name__)
         return ret
 

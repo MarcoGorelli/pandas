@@ -157,8 +157,7 @@ def clean_interp_method(method: str, index: Index, **kwargs) -> str:
     if method in ("spline", "polynomial") and order is None:
         raise ValueError("You must specify the order of the spline or polynomial.")
 
-    valid = NP_METHODS + SP_METHODS
-    if method not in valid:
+    if method not in (valid := NP_METHODS + SP_METHODS):
         raise ValueError(f"method must be one of {valid}. Got '{method}' instead.")
 
     if method in ("krogh", "piecewise_polynomial", "pchip"):
@@ -348,8 +347,7 @@ def _index_to_interp_indices(index: Index, method: str) -> np.ndarray:
     """
     Convert Index to ndarray of indices to pass to NumPy/SciPy.
     """
-    xarr = index._values
-    if needs_i8_conversion(xarr.dtype):
+    if needs_i8_conversion((xarr := index._values).dtype):
         # GH#1646 for dt64tz
         xarr = xarr.view("i8")
 
@@ -739,9 +737,7 @@ def _interpolate_with_limit_area(
     Modifies values in-place.
     """
 
-    invalid = isna(values)
-
-    if not invalid.all():
+    if not (invalid := isna(values)).all():
         first = find_valid_index(values, how="first")
         if first is None:
             first = 0

@@ -117,8 +117,7 @@ def _maybe_match_name(a, b):
     pandas.core.common.consensus_name_attr
     """
     a_has = hasattr(a, "name")
-    b_has = hasattr(b, "name")
-    if a_has and b_has:
+    if a_has and (b_has := hasattr(b, "name")):
         try:
             if a.name == b.name:
                 return a.name

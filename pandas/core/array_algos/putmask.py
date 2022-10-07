@@ -73,8 +73,7 @@ def putmask_without_repeat(
         new = new.astype(values.dtype, copy=False)
 
     # TODO: this prob needs some better checking for 2D cases
-    nlocs = mask.sum()
-    if nlocs > 0 and is_list_like(new) and getattr(new, "ndim", 1) == 1:
+    if (nlocs := mask.sum()) > 0 and is_list_like(new) and getattr(new, "ndim", 1) == 1:
         shape = np.shape(new)
         # np.shape compat for if setitem_datetimelike_compat
         #  changed arraylike to list e.g. test_where_dt64_2d

@@ -172,8 +172,7 @@ class Block(PandasObject):
         """
         Can we store NA values in this Block?
         """
-        dtype = self.dtype
-        if isinstance(dtype, np.dtype):
+        if isinstance((dtype := self.dtype), np.dtype):
             return dtype.kind not in ["b", "i", "u"]
         return dtype._can_hold_na
 
@@ -295,9 +294,7 @@ class Block(PandasObject):
         # for "BlockPlacement"; expected type "Union[slice, Sequence[int]]"
         new_mgr_locs = self._mgr_locs[slicer]  # type: ignore[index]
 
-        new_values = self._slice(slicer)
-
-        if new_values.ndim != self.values.ndim:
+        if (new_values := self._slice(slicer)).ndim != self.values.ndim:
             raise ValueError("Only same dim slicing is allowed")
 
         return type(self)(new_values, new_mgr_locs, self.ndim)
@@ -311,9 +308,8 @@ class Block(PandasObject):
 
         Only supports slices that preserve dimensionality.
         """
-        new_values = self._slice(slicer)
 
-        if new_values.ndim != self.values.ndim:
+        if (new_values := self._slice(slicer)).ndim != self.values.ndim:
             raise ValueError("Only same dim slicing is allowed")
 
         return type(self)(new_values, new_mgr_locs, self.ndim)
@@ -530,8 +526,7 @@ class Block(PandasObject):
         new_values = astype_array_safe(values, dtype, copy=copy, errors=errors)
 
         new_values = maybe_coerce_values(new_values)
-        newb = self.make_block(new_values)
-        if newb.shape != self.shape:
+        if (newb := self.make_block(new_values)).shape != self.shape:
             raise TypeError(
                 f"cannot set astype for copy = [{copy}] for dtype "
                 f"({self.dtype.name} [{self.shape}]) to different shape "
@@ -574,9 +569,7 @@ class Block(PandasObject):
         #  here with listlike to_replace or value, as those cases
         #  go through replace_list
 
-        values = self.values
-
-        if isinstance(values, Categorical):
+        if isinstance((values := self.values), Categorical):
             # TODO: avoid special-casing
             blk = self if inplace else self.copy()
             # error: Item "ExtensionArray" of "Union[ndarray[Any, Any],
@@ -1419,8 +1412,7 @@ class EABackedBlock(Block):
         indexer = self._unwrap_setitem_indexer(indexer)
         value = self._maybe_squeeze_arg(value)
 
-        values = self.values
-        if values.ndim == 2:
+        if (values := self.values).ndim == 2:
             # TODO(GH#45419): string[pyarrow] tests break if we transpose
             #  unconditionally
             values = values.T
@@ -1515,8 +1507,7 @@ class EABackedBlock(Block):
         """
         mask = extract_bool_array(mask)
 
-        values = self.values
-        if values.ndim == 2:
+        if (values := self.values).ndim == 2:
             values = values.T
 
         orig_new = new
@@ -1631,8 +1622,7 @@ class EABackedBlock(Block):
         fill_value=None,
         **kwargs,
     ):
-        values = self.values
-        if values.ndim == 2 and axis == 0:
+        if (values := self.values).ndim == 2 and axis == 0:
             # NDArrayBackedExtensionArray.fillna assumes axis=1
             new_values = values.T.fillna(value=fill_value, method=method, limit=limit).T
         else:
@@ -2047,8 +2037,7 @@ class ObjectBlock(NumpyBlock):
         attempt to cast any object types to better types return a copy of
         the block (if copy = True) by definition we ARE an ObjectBlock!!!!!
         """
-        values = self.values
-        if values.ndim == 2:
+        if (values := self.values).ndim == 2:
             # maybe_split ensures we only get here with values.shape[0] == 1,
             # avoid doing .ravel as that might make a copy
             values = values[0]

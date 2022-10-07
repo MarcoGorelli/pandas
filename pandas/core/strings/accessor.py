@@ -250,8 +250,7 @@ class StringMethods(NoNewAttributesMixin):
             stacklevel=find_stack_level(inspect.currentframe()),
         )
         i = 0
-        g = self.get(i)
-        while g.notna().any():
+        while (g := self.get(i)).notna().any():
             yield g
             i += 1
             g = self.get(i)
@@ -2633,9 +2632,7 @@ class StringMethods(NoNewAttributesMixin):
         obj = self._data
         result_dtype = _result_dtype(obj)
 
-        returns_df = regex.groups > 1 or expand
-
-        if returns_df:
+        if returns_df := regex.groups > 1 or expand:
             name = None
             columns = _get_group_names(regex)
 

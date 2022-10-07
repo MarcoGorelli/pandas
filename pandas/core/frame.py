@@ -942,8 +942,7 @@ class DataFrame(NDFrame, OpsMixin):
         """
         if isinstance(self._mgr, ArrayManager):
             return False
-        blocks = self._mgr.blocks
-        if len(blocks) != 1:
+        if len(blocks := self._mgr.blocks) != 1:
             return False
 
         dtype = blocks[0].dtype
@@ -961,17 +960,14 @@ class DataFrame(NDFrame, OpsMixin):
         """
         self._consolidate_inplace()
 
-        mgr = self._mgr
-
-        if isinstance(mgr, ArrayManager):
+        if isinstance((mgr := self._mgr), ArrayManager):
             if len(mgr.arrays) == 1 and not is_1d_only_ea_dtype(mgr.arrays[0].dtype):
                 # error: Item "ExtensionArray" of "Union[ndarray, ExtensionArray]"
                 # has no attribute "reshape"
                 return mgr.arrays[0].reshape(-1, 1)  # type: ignore[union-attr]
             return self.values
 
-        blocks = mgr.blocks
-        if len(blocks) != 1:
+        if len(blocks := mgr.blocks) != 1:
             return self.values
 
         arr = blocks[0].values
@@ -3870,8 +3866,7 @@ class DataFrame(NDFrame, OpsMixin):
 
     def _getitem_multilevel(self, key):
         # self.columns is a MultiIndex
-        loc = self.columns.get_loc(key)
-        if isinstance(loc, (slice, np.ndarray)):
+        if isinstance((loc := self.columns.get_loc(key)), (slice, np.ndarray)):
             new_columns = self.columns[loc]
             result_columns = maybe_droplevels(new_columns, key)
             if self._is_mixed_type:
@@ -3972,8 +3967,7 @@ class DataFrame(NDFrame, OpsMixin):
         key = com.apply_if_callable(key, self)
 
         # see if we can slice the rows
-        indexer = convert_to_index_sliceable(self, key)
-        if indexer is not None:
+        if (indexer := convert_to_index_sliceable(self, key)) is not None:
             # either we have a slice or we have a string that can be converted
             #  to a slice for partial-string date indexing
             return self._setitem_slice(indexer, value)
@@ -4282,8 +4276,7 @@ class DataFrame(NDFrame, OpsMixin):
     def _get_item_cache(self, item: Hashable) -> Series:
         """Return the cached item, item represents a label indexer."""
         cache = self._item_cache
-        res = cache.get(item)
-        if res is None:
+        if (res := cache.get(item)) is None:
             # All places that call _get_item_cache have unique columns,
             #  pending resolution of GH#33047
 
@@ -5003,14 +4996,12 @@ class DataFrame(NDFrame, OpsMixin):
     def _reindex_axes(self, axes, level, limit, tolerance, method, fill_value, copy):
         frame = self
 
-        columns = axes["columns"]
-        if columns is not None:
+        if (columns := axes["columns"]) is not None:
             frame = frame._reindex_columns(
                 columns, method, copy, level, fill_value, limit, tolerance
             )
 
-        index = axes["index"]
-        if index is not None:
+        if (index := axes["index"]) is not None:
             frame = frame._reindex_index(
                 index, method, copy, level, fill_value, limit, tolerance
             )
@@ -7981,9 +7972,8 @@ Keep all original rows and columns and also all original values
         other_idxlen = len(other.index)  # save for compare
 
         this, other = self.align(other, copy=False)
-        new_index = this.index
 
-        if other.empty and len(new_index) == len(self.index):
+        if other.empty and len(new_index := this.index) == len(self.index):
             return self.copy()
 
         if self.empty and len(other) == other_idxlen:
@@ -11364,8 +11354,7 @@ Parrot 2  Parrot       24.0
             res = self._constructor([], index=q, columns=cols, dtype=dtype)
             return res.__finalize__(self, method="quantile")
 
-        valid_method = {"single", "table"}
-        if method not in valid_method:
+        if method not in (valid_method := {"single", "table"}):
             raise ValueError(
                 f"Invalid method: {method}. Method must be in {valid_method}."
             )
@@ -11488,8 +11477,7 @@ Parrot 2  Parrot       24.0
         new_obj = self.copy(deep=copy)
 
         axis_name = self._get_axis_name(axis)
-        old_ax = getattr(self, axis_name)
-        if not isinstance(old_ax, PeriodIndex):
+        if not isinstance((old_ax := getattr(self, axis_name)), PeriodIndex):
             raise TypeError(f"unsupported Type {type(old_ax).__name__}")
 
         new_ax = old_ax.to_timestamp(freq=freq, how=how)
@@ -11544,8 +11532,7 @@ Parrot 2  Parrot       24.0
         new_obj = self.copy(deep=copy)
 
         axis_name = self._get_axis_name(axis)
-        old_ax = getattr(self, axis_name)
-        if not isinstance(old_ax, DatetimeIndex):
+        if not isinstance((old_ax := getattr(self, axis_name)), DatetimeIndex):
             raise TypeError(f"unsupported Type {type(old_ax).__name__}")
 
         new_ax = old_ax.to_period(freq=freq)

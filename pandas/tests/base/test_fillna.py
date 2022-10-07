@@ -13,9 +13,8 @@ from pandas.tests.base.common import allow_na_ops
 
 def test_fillna(index_or_series_obj):
     # GH 11343
-    obj = index_or_series_obj
 
-    if isinstance(obj, MultiIndex):
+    if isinstance((obj := index_or_series_obj), MultiIndex):
         msg = "isna is not defined for MultiIndex"
         with pytest.raises(NotImplementedError, match=msg):
             obj.fillna(0)

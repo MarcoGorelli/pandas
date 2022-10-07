@@ -289,9 +289,8 @@ class SparseDtype(ExtensionDtype):
             When the subtype cannot be extracted.
         """
         xpr = re.compile(r"Sparse\[(?P<subtype>[^,]*)(, )?(?P<fill_value>.*?)?\]$")
-        m = xpr.match(dtype)
         has_fill_value = False
-        if m:
+        if m := xpr.match(dtype):
             subtype = m.groupdict()["subtype"]
             has_fill_value = bool(m.groupdict()["fill_value"])
         elif dtype == "Sparse":
@@ -348,10 +347,9 @@ class SparseDtype(ExtensionDtype):
         >>> SparseDtype(int, 1).update_dtype(SparseDtype(float, np.nan))
         Sparse[float64, nan]
         """
-        cls = type(self)
         dtype = pandas_dtype(dtype)
 
-        if not isinstance(dtype, cls):
+        if not isinstance(dtype, (cls := type(self))):
             if not isinstance(dtype, np.dtype):
                 raise TypeError("sparse arrays of extension dtypes not supported")
 

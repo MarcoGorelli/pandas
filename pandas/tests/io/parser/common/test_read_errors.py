@@ -250,8 +250,7 @@ def test_null_byte_char(request, all_parsers):
 @td.check_file_leaks
 def test_open_file(request, all_parsers):
     # GH 39024
-    parser = all_parsers
-    if parser.engine == "c":
+    if (parser := all_parsers).engine == "c":
         request.node.add_marker(
             pytest.mark.xfail(
                 reason=f"{parser.engine} engine does not support sep=None "
@@ -293,10 +292,9 @@ def test_conflict_on_bad_line(all_parsers, error_bad_lines, warn_bad_lines):
 
 
 def test_bad_header_uniform_error(all_parsers):
-    parser = all_parsers
     data = "+++123456789...\ncol1,col2,col3,col4\n1,2,3,4\n"
     msg = "Expected 2 fields in line 2, saw 4"
-    if parser.engine == "c":
+    if (parser := all_parsers).engine == "c":
         msg = "Could not construct index. Requested to use 1 "
         "number of columns, but 3 left to parse."
 

@@ -184,7 +184,6 @@ def test_skip_row_with_newline_and_quote(all_parsers, data, exp_data):
 )
 def test_skiprows_lineterminator(all_parsers, lineterminator, request):
     # see gh-9079
-    parser = all_parsers
     data = "\n".join(
         [
             "SMOSMANIA ThetaProbe-ML2X ",
@@ -202,7 +201,7 @@ def test_skiprows_lineterminator(all_parsers, lineterminator, request):
         columns=["date", "time", "var", "flag", "oflag"],
     )
 
-    if parser.engine == "python" and lineterminator == "\r":
+    if (parser := all_parsers).engine == "python" and lineterminator == "\r":
         mark = pytest.mark.xfail(reason="'CR' not respect with the Python parser yet")
         request.node.add_marker(mark)
 

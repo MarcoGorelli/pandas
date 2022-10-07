@@ -2000,8 +2000,7 @@ class SingleBlockManager(BaseBlockManager, SingleDataManager):
     def getitem_mgr(self, indexer: slice | npt.NDArray[np.bool_]) -> SingleBlockManager:
         # similar to get_slice, but not restricted to slice indexer
         blk = self._block
-        array = blk._slice(indexer)
-        if array.ndim > 1:
+        if (array := blk._slice(indexer)).ndim > 1:
             # This will be caught by Series._get_values
             raise ValueError("dimension-expanding indexing not allowed")
 
@@ -2211,9 +2210,8 @@ def _grouping_func(tup: tuple[int, ArrayLike]) -> tuple[int, bool, DtypeObj]:
     # compat for numpy<1.21, in which comparing a np.dtype with an ExtensionDtype
     # raises instead of returning False. Once earlier numpy versions are dropped,
     # this can be simplified to `return tup[1].dtype`
-    dtype = tup[1].dtype
 
-    if is_1d_only_ea_dtype(dtype):
+    if is_1d_only_ea_dtype(dtype := tup[1].dtype):
         # We know these won't be consolidated, so don't need to group these.
         # This avoids expensive comparisons of CategoricalDtype objects
         sep = id(dtype)

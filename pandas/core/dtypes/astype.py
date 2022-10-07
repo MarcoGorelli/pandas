@@ -264,9 +264,8 @@ def astype_array_safe(
     -------
     ndarray or ExtensionArray
     """
-    errors_legal_values = ("raise", "ignore")
 
-    if errors not in errors_legal_values:
+    if errors not in (errors_legal_values := ("raise", "ignore")):
         invalid_arg = (
             "Expected value of kwarg 'errors' to be one of "
             f"{list(errors_legal_values)}. Supplied value is '{errors}'"

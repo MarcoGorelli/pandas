@@ -1386,8 +1386,7 @@ class TestDataFrameReductions:
 
     def test_min_max_dt64_with_NaT_skipna_false(self, request, tz_naive_fixture):
         # GH#36907
-        tz = tz_naive_fixture
-        if isinstance(tz, tzlocal) and is_platform_windows():
+        if isinstance((tz := tz_naive_fixture), tzlocal) and is_platform_windows():
             pytest.skip(
                 "GH#37659 OSError raised within tzlocal bc Windows "
                 "chokes in times before 1970-01-01"

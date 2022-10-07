@@ -247,8 +247,7 @@ def enable_data_resource_formatter(enable: bool) -> None:
         return
     from IPython import get_ipython
 
-    ip = get_ipython()
-    if ip is None:
+    if (ip := get_ipython()) is None:
         # still not in IPython
         return
 

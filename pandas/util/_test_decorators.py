@@ -113,8 +113,7 @@ def safe_import(mod_name: str, min_version: str | None = None):
 
 
 def _skip_if_no_mpl() -> bool | None:
-    mod = safe_import("matplotlib")
-    if mod:
+    if mod := safe_import("matplotlib"):
         mod.use("Agg")
         return None
     else:
@@ -268,8 +267,7 @@ def file_leak_context() -> Generator[None, None, None]:
     """
     ContextManager analogue to check_file_leaks.
     """
-    psutil = safe_import("psutil")
-    if not psutil or is_platform_windows():
+    if not (psutil := safe_import("psutil")) or is_platform_windows():
         # Checking for file leaks can hang on Windows CI
         yield
     else:

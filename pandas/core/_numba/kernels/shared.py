@@ -13,8 +13,7 @@ import numpy as np
 )
 def is_monotonic_increasing(bounds: np.ndarray) -> bool:
     """Check if int64 values are monotonically increasing."""
-    n = len(bounds)
-    if n < 2:
+    if (n := len(bounds)) < 2:
         return True
     prev = bounds[0]
     for i in range(1, n):

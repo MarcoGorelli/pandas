@@ -177,9 +177,8 @@ def test_extract_expand_capture_groups(any_string_dtype):
 def test_extract_expand_capture_groups_index(request, index, any_string_dtype):
     # https://github.com/pandas-dev/pandas/issues/6348
     # not passing index to the extractor
-    data = ["A1", "B2", "C"]
 
-    if len(index) < len(data):
+    if len(index) < len(data := ["A1", "B2", "C"]):
         request.node.add_marker(pytest.mark.xfail(reason="Index too short."))
 
     index = index[: len(data)]
@@ -354,9 +353,7 @@ def test_extract_dataframe_capture_groups_index(index, any_string_dtype):
     # GH6348
     # not passing index to the extractor
 
-    data = ["A1", "B2", "C"]
-
-    if len(index) < len(data):
+    if len(index) < len(data := ["A1", "B2", "C"]):
         pytest.skip("Index too short")
 
     index = index[: len(data)]

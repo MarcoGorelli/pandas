@@ -605,8 +605,7 @@ def makeCustomIndex(
         "td": makeTimedeltaIndex,
         "p": makePeriodIndex,
     }
-    idx_func = idx_func_dict.get(idx_type)
-    if idx_func:
+    if idx_func := idx_func_dict.get(idx_type):
         idx = idx_func(nentries)
         # but we need to fill in the name
         if names:
@@ -861,8 +860,7 @@ def _make_skipna_wrapper(alternative, skipna_alternative=None):
     else:
 
         def skipna_wrapper(x):
-            nona = x.dropna()
-            if len(nona) == 0:
+            if len(nona := x.dropna()) == 0:
                 return np.nan
             return alternative(nona)
 

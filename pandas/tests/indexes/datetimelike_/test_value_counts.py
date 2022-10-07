@@ -35,8 +35,7 @@ class TestValueCounts:
             np.repeat(orig._values, range(1, len(orig) + 1)), dtype=orig.dtype
         )
 
-        exp_idx = orig[::-1]
-        if not isinstance(exp_idx, PeriodIndex):
+        if not isinstance((exp_idx := orig[::-1]), PeriodIndex):
             exp_idx = exp_idx._with_freq(None)
         expected = Series(range(10, 0, -1), index=exp_idx, dtype="int64")
 

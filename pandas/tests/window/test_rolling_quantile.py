@@ -18,9 +18,7 @@ import pandas.tseries.offsets as offsets
 def scoreatpercentile(a, per):
     values = np.sort(a, axis=0)
 
-    idx = int(per / 1.0 * (values.shape[0] - 1))
-
-    if idx == values.shape[0] - 1:
+    if (idx := int(per / 1.0 * (values.shape[0] - 1))) == values.shape[0] - 1:
         retval = values[-1]
 
     else:

@@ -431,8 +431,7 @@ def notna(obj: object) -> bool | npt.NDArray[np.bool_] | NDFrame:
     1    False
     Name: 1, dtype: bool
     """
-    res = isna(obj)
-    if isinstance(res, bool):
+    if isinstance((res := isna(obj)), bool):
         return not res
     return ~res
 

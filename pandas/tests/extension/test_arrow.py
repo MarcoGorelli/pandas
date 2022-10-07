@@ -366,7 +366,6 @@ class TestGetitemTests(base.BaseGetitemTests):
 
     def test_loc_iloc_frame_single_dtype(self, request, using_array_manager, data):
         tz = getattr(data.dtype.pyarrow_dtype, "tz", None)
-        unit = getattr(data.dtype.pyarrow_dtype, "unit", None)
         bad_units = ["ns"]
         if pa_version_under2p0:
             bad_units.extend(["s", "ms", "us"])
@@ -374,7 +373,7 @@ class TestGetitemTests(base.BaseGetitemTests):
             pa_version_under3p0
             and not using_array_manager
             and tz not in (None, "UTC")
-            and unit in bad_units
+            and (unit := getattr(data.dtype.pyarrow_dtype, "unit", None)) in bad_units
         ):
             request.node.add_marker(
                 pytest.mark.xfail(
@@ -527,8 +526,7 @@ class TestBaseGroupby(base.BaseGroupbyTests):
     def test_groupby_extension_apply(
         self, data_for_grouping, groupby_apply_op, request
     ):
-        pa_dtype = data_for_grouping.dtype.pyarrow_dtype
-        if pa.types.is_duration(pa_dtype):
+        if pa.types.is_duration(pa_dtype := data_for_grouping.dtype.pyarrow_dtype):
             request.node.add_marker(
                 pytest.mark.xfail(
                     raises=pa.ArrowNotImplementedError,
@@ -1026,8 +1024,7 @@ class TestBaseUnaryOps(base.BaseUnaryOpsTests):
         reason="pyarrow.compute.invert not supported in pyarrow<2.0",
     )
     def test_invert(self, data, request):
-        pa_dtype = data.dtype.pyarrow_dtype
-        if not pa.types.is_boolean(pa_dtype):
+        if not pa.types.is_boolean(pa_dtype := data.dtype.pyarrow_dtype):
             request.node.add_marker(
                 pytest.mark.xfail(
                     raises=pa.ArrowNotImplementedError,
@@ -1061,8 +1058,7 @@ class TestBaseMethods(base.BaseMethodsTests):
     @pytest.mark.filterwarnings("ignore:Falling back:pandas.errors.PerformanceWarning")
     @pytest.mark.parametrize("dropna", [True, False])
     def test_value_counts(self, all_data, dropna, request):
-        pa_dtype = all_data.dtype.pyarrow_dtype
-        if pa.types.is_duration(pa_dtype):
+        if pa.types.is_duration(pa_dtype := all_data.dtype.pyarrow_dtype):
             request.node.add_marker(
                 pytest.mark.xfail(
                     raises=pa.ArrowNotImplementedError,
@@ -1072,8 +1068,7 @@ class TestBaseMethods(base.BaseMethodsTests):
         super().test_value_counts(all_data, dropna)
 
     def test_value_counts_with_normalize(self, data, request):
-        pa_dtype = data.dtype.pyarrow_dtype
-        if pa.types.is_duration(pa_dtype):
+        if pa.types.is_duration(pa_dtype := data.dtype.pyarrow_dtype):
             request.node.add_marker(
                 pytest.mark.xfail(
                     raises=pa.ArrowNotImplementedError,
@@ -1188,8 +1183,7 @@ class TestBaseMethods(base.BaseMethodsTests):
 
     @pytest.mark.parametrize("ascending", [True, False])
     def test_sort_values_frame(self, data_for_sorting, ascending, request):
-        pa_dtype = data_for_sorting.dtype.pyarrow_dtype
-        if pa.types.is_duration(pa_dtype):
+        if pa.types.is_duration(pa_dtype := data_for_sorting.dtype.pyarrow_dtype):
             request.node.add_marker(
                 pytest.mark.xfail(
                     raises=pa.ArrowNotImplementedError,
@@ -1240,8 +1234,7 @@ class TestBaseMethods(base.BaseMethodsTests):
 
     @pytest.mark.parametrize("na_sentinel", [-1, -2])
     def test_factorize_equivalence(self, data_for_grouping, na_sentinel, request):
-        pa_dtype = data_for_grouping.dtype.pyarrow_dtype
-        if pa.types.is_duration(pa_dtype):
+        if pa.types.is_duration(pa_dtype := data_for_grouping.dtype.pyarrow_dtype):
             request.node.add_marker(
                 pytest.mark.xfail(
                     raises=pa.ArrowNotImplementedError,
@@ -1254,8 +1247,7 @@ class TestBaseMethods(base.BaseMethodsTests):
             super().test_factorize_equivalence(data_for_grouping, na_sentinel)
 
     def test_factorize_empty(self, data, request):
-        pa_dtype = data.dtype.pyarrow_dtype
-        if pa.types.is_duration(pa_dtype):
+        if pa.types.is_duration(pa_dtype := data.dtype.pyarrow_dtype):
             request.node.add_marker(
                 pytest.mark.xfail(
                     raises=pa.ArrowNotImplementedError,
@@ -1319,8 +1311,7 @@ class TestBaseMethods(base.BaseMethodsTests):
         super().test_combine_le(data_repeated)
 
     def test_combine_add(self, data_repeated, request):
-        pa_dtype = next(data_repeated(1)).dtype.pyarrow_dtype
-        if pa.types.is_temporal(pa_dtype):
+        if pa.types.is_temporal(pa_dtype := next(data_repeated(1)).dtype.pyarrow_dtype):
             request.node.add_marker(
                 pytest.mark.xfail(
                     raises=TypeError,
@@ -1330,8 +1321,7 @@ class TestBaseMethods(base.BaseMethodsTests):
         super().test_combine_add(data_repeated)
 
     def test_searchsorted(self, data_for_sorting, as_series, request):
-        pa_dtype = data_for_sorting.dtype.pyarrow_dtype
-        if pa.types.is_boolean(pa_dtype):
+        if pa.types.is_boolean(pa_dtype := data_for_sorting.dtype.pyarrow_dtype):
             request.node.add_marker(
                 pytest.mark.xfail(
                     reason=f"{pa_dtype} only has 2 unique possible values",
@@ -1340,8 +1330,7 @@ class TestBaseMethods(base.BaseMethodsTests):
         super().test_searchsorted(data_for_sorting, as_series)
 
     def test_where_series(self, data, na_value, as_frame, request):
-        pa_dtype = data.dtype.pyarrow_dtype
-        if pa.types.is_temporal(pa_dtype):
+        if pa.types.is_temporal(pa_dtype := data.dtype.pyarrow_dtype):
             request.node.add_marker(
                 pytest.mark.xfail(
                     raises=pa.ArrowNotImplementedError,

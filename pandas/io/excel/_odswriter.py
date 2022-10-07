@@ -172,8 +172,7 @@ class ODSWriter(ExcelWriter):
             Dictionary with attributes and attribute values
         """
         attributes: dict[str, int | str] = {}
-        style_name = self._process_style(cell.style)
-        if style_name is not None:
+        if (style_name := self._process_style(cell.style)) is not None:
             attributes["stylename"] = style_name
         if cell.mergestart is not None and cell.mergeend is not None:
             attributes["numberrowsspanned"] = max(1, cell.mergestart)
@@ -257,8 +256,7 @@ class ODSWriter(ExcelWriter):
 
         if style is None:
             return None
-        style_key = json.dumps(style)
-        if style_key in self._style_dict:
+        if (style_key := json.dumps(style)) in self._style_dict:
             return self._style_dict[style_key]
         name = f"pd{len(self._style_dict)+1}"
         self._style_dict[style_key] = name

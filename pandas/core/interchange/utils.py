@@ -76,8 +76,7 @@ def dtype_to_arrow_c_fmt(dtype: DtypeObj) -> str:
     elif dtype == np.dtype("O"):
         return ArrowCTypes.STRING
 
-    format_str = getattr(ArrowCTypes, dtype.name.upper(), None)
-    if format_str is not None:
+    if (format_str := getattr(ArrowCTypes, dtype.name.upper(), None)) is not None:
         return format_str
 
     if is_datetime64_dtype(dtype):

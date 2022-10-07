@@ -80,15 +80,13 @@ class BaseInterfaceTests(BaseExtensionTests):
         assert not hasattr(data, "_values")
 
     def test_is_numeric_honored(self, data):
-        result = pd.Series(data)
-        if hasattr(result._mgr, "blocks"):
+        if hasattr((result := pd.Series(data))._mgr, "blocks"):
             assert result._mgr.blocks[0].is_numeric is data.dtype._is_numeric
 
     def test_isna_extension_array(self, data_missing):
         # If your `isna` returns an ExtensionArray, you must also implement
         # _reduce. At the *very* least, you must implement any and all
-        na = data_missing.isna()
-        if is_extension_array_dtype(na):
+        if is_extension_array_dtype(na := data_missing.isna()):
             assert na._reduce("any")
             assert na.any()
 

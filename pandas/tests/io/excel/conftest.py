@@ -55,8 +55,7 @@ def check_for_file_leaks():
     _test_decorators.check_file_leaks
     """
     # GH#30162
-    psutil = td.safe_import("psutil")
-    if not psutil:
+    if not (psutil := td.safe_import("psutil")):
         yield
 
     else:

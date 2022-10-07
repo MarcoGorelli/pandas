@@ -234,8 +234,7 @@ class TestIsNA:
         ],
     )
     def test_complex(self, value, expected):
-        result = isna(value)
-        if is_scalar(result):
+        if is_scalar(result := isna(value)):
             assert result is expected
         else:
             tm.assert_numpy_array_equal(result, expected)

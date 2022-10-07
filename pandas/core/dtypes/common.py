@@ -1773,8 +1773,7 @@ def pandas_dtype(dtype) -> DtypeObj:
         return dtype
 
     # registered extension types
-    result = registry.find(dtype)
-    if result is not None:
+    if (result := registry.find(dtype)) is not None:
         return result
 
     # try a numpy dtype

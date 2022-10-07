@@ -469,9 +469,8 @@ def nargminmax(values: ExtensionArray, method: str, axis: AxisInt = 0):
     func = np.argmax if method == "argmax" else np.argmin
 
     mask = np.asarray(isna(values))
-    arr_values = values._values_for_argsort()
 
-    if arr_values.ndim > 1:
+    if (arr_values := values._values_for_argsort()).ndim > 1:
         if mask.any():
             if axis == 1:
                 zipped = zip(arr_values, mask)
@@ -564,8 +563,7 @@ def ensure_key_mapped(values, key: Callable | None, levels=None):
     if isinstance(values, ABCMultiIndex):
         return _ensure_key_mapped_multiindex(values, key, level=levels)
 
-    result = key(values.copy())
-    if len(result) != len(values):
+    if len(result := key(values.copy())) != len(values):
         raise ValueError(
             "User-provided `key` function must not change the shape of the array."
         )

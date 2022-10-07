@@ -295,8 +295,7 @@ def maybe_downcast_to_dtype(result: ArrayLike, dtype: str | np.dtype) -> ArrayLi
         # enforce our signature annotation
         raise TypeError(dtype)  # pragma: no cover
 
-    converted = maybe_downcast_numeric(result, dtype, do_round)
-    if converted is not result:
+    if (converted := maybe_downcast_numeric(result, dtype, do_round)) is not result:
         return converted
 
     # a datetimelike

@@ -843,9 +843,8 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         y : same as input
         """
         i = self._get_axis_number(axis1)
-        j = self._get_axis_number(axis2)
 
-        if i == j:
+        if i == (j := self._get_axis_number(axis2)):
             if copy:
                 return self.copy()
             return self
@@ -1286,8 +1285,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         )
         copy = kwargs.pop("copy", True)
         inplace = kwargs.pop("inplace", False)
-        axis = kwargs.pop("axis", 0)
-        if axis is not None:
+        if (axis := kwargs.pop("axis", 0)) is not None:
             axis = self._get_axis_number(axis)
 
         if kwargs:
@@ -2106,8 +2104,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
             DeprecationWarning,
             stacklevel=find_stack_level(inspect.currentframe()),
         )
-        res = lib.item_from_zerodim(result)
-        if is_scalar(res):
+        if is_scalar(res := lib.item_from_zerodim(result)):
             # e.g. we get here with np.ptp(series)
             # ptp also requires the item_from_zerodim
             return res
@@ -5811,8 +5808,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         # Process random_state argument
         rs = com.random_state(random_state)
 
-        size = sample.process_sampling_size(n, frac, replace)
-        if size is None:
+        if (size := sample.process_sampling_size(n, frac, replace)) is None:
             assert frac is not None
             size = round(frac * obj_len)
 
@@ -7736,8 +7732,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         if not self.index.is_monotonic_increasing:
             raise ValueError("asof requires a sorted index")
 
-        is_series = isinstance(self, ABCSeries)
-        if is_series:
+        if is_series := isinstance(self, ABCSeries):
             if subset is not None:
                 raise ValueError("subset is not valid for Series")
         else:
@@ -7746,8 +7741,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
             if not is_list_like(subset):
                 subset = [subset]
 
-        is_list = is_list_like(where)
-        if not is_list:
+        if not (is_list := is_list_like(where)):
             start = self.index[0]
             if isinstance(self.index, PeriodIndex):
                 where = Period(where, freq=self.index.freq)
@@ -8336,9 +8330,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
             axis = self._stat_axis_number
         axis = self._get_axis_number(axis)
 
-        index = self._get_axis(axis)
-
-        if not isinstance(index, DatetimeIndex):
+        if not isinstance((index := self._get_axis(axis)), DatetimeIndex):
             raise TypeError("Index must be DatetimeIndex")
 
         indexer = index.indexer_at_time(time, asof=asof)
@@ -8432,8 +8424,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
             axis = self._stat_axis_number
         axis = self._get_axis_number(axis)
 
-        index = self._get_axis(axis)
-        if not isinstance(index, DatetimeIndex):
+        if not isinstance((index := self._get_axis(axis)), DatetimeIndex):
             raise TypeError("Index must be DatetimeIndex")
 
         old_include_arg_used = (include_start != lib.no_default) or (

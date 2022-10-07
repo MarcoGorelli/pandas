@@ -180,10 +180,9 @@ class SingleDataManager(DataManager):
         in place, not returning a new Manager (and Block), and thus never changing
         the dtype.
         """
-        arr = self.array
 
         # EAs will do this validation in their own __setitem__ methods.
-        if isinstance(arr, np.ndarray):
+        if isinstance((arr := self.array), np.ndarray):
             # Note: checking for ndarray instead of np.dtype means we exclude
             #  dt64/td64, which do their own validation.
             value = np_can_hold_element(arr.dtype, value)

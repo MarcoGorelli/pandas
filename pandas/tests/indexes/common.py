@@ -92,8 +92,7 @@ class Base:
 
         # GH11193, when an existing index is passed, and a new name is not
         # specified, the new index should inherit the previous object name
-        expected = simple_index
-        if not isinstance(expected, MultiIndex):
+        if not isinstance((expected := simple_index), MultiIndex):
             expected.name = "foo"
             result = Index(expected)
             tm.assert_index_equal(result, expected)
@@ -344,8 +343,7 @@ class Base:
     def test_where(self, listlike_box, simple_index):
         klass = listlike_box
 
-        idx = simple_index
-        if isinstance(idx, (DatetimeIndex, TimedeltaIndex)):
+        if isinstance((idx := simple_index), (DatetimeIndex, TimedeltaIndex)):
             # where does not preserve freq
             idx = idx._with_freq(None)
 
@@ -586,8 +584,7 @@ class Base:
         assert idx[:0].empty
 
     def test_join_self_unique(self, join_type, simple_index):
-        idx = simple_index
-        if idx.is_unique:
+        if (idx := simple_index).is_unique:
             joined = idx.join(idx, how=join_type)
             assert (idx == joined).all()
 
@@ -839,8 +836,7 @@ class NumericBase(Base):
 
         result = index.insert(0, index[0])
 
-        cls = type(index)
-        if cls is RangeIndex:
+        if (cls := type(index)) is RangeIndex:
             cls = Int64Index
 
         expected = cls([index[0]] + list(index), dtype=index.dtype)
@@ -849,9 +845,8 @@ class NumericBase(Base):
     def test_insert_na(self, nulls_fixture, simple_index):
         # GH 18295 (test missing)
         index = simple_index
-        na_val = nulls_fixture
 
-        if na_val is pd.NaT:
+        if (na_val := nulls_fixture) is pd.NaT:
             expected = Index([index[0], pd.NaT] + list(index[1:]), dtype=object)
         else:
             expected = Float64Index([index[0], np.nan] + list(index[1:]))
@@ -869,8 +864,7 @@ class NumericBase(Base):
     def test_arithmetic_explicit_conversions(self):
         # GH 8608
         # add/sub are overridden explicitly for Float/Int Index
-        index_cls = self._index_cls
-        if index_cls is RangeIndex:
+        if (index_cls := self._index_cls) is RangeIndex:
             idx = RangeIndex(5)
         else:
             idx = index_cls(np.arange(5, dtype="int64"))

@@ -920,8 +920,7 @@ def _parser_dispatch(flavor: str | None) -> type[_HtmlFrameParser]:
     ImportError
         * If you do not have the requested `flavor`
     """
-    valid_parsers = list(_valid_parsers.keys())
-    if flavor not in valid_parsers:
+    if flavor not in (valid_parsers := list(_valid_parsers.keys())):
         raise ValueError(
             f"{repr(flavor)} is not a valid flavor, valid flavors are {valid_parsers}"
         )
@@ -963,9 +962,8 @@ def _validate_flavor(flavor):
 
     flavor = tuple(flavor)
     valid_flavors = set(_valid_parsers)
-    flavor_set = set(flavor)
 
-    if not flavor_set & valid_flavors:
+    if not (flavor_set := set(flavor)) & valid_flavors:
         raise ValueError(
             f"{_print_as_set(flavor_set)} is not a valid set of flavors, valid "
             f"flavors are {_print_as_set(valid_flavors)}"

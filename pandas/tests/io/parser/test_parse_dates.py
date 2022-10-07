@@ -950,8 +950,7 @@ def test_parse_dates_custom_euro_format(all_parsers, kwargs):
 
 def test_parse_tz_aware(all_parsers, request):
     # See gh-1693
-    parser = all_parsers
-    if parser.engine == "pyarrow" and pa_version_under7p0:
+    if (parser := all_parsers).engine == "pyarrow" and pa_version_under7p0:
         request.node.add_marker(pytest.mark.xfail(reason="Fails for pyarrow < 7.0"))
     data = "Date,x\n2012-06-13T01:39:00Z,0.5"
 

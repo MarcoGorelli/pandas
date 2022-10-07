@@ -495,9 +495,8 @@ def hist_frame(
     data = data.select_dtypes(
         include=(np.number, "datetime64", "datetimetz"), exclude="timedelta"
     )
-    naxes = len(data.columns)
 
-    if naxes == 0:
+    if (naxes := len(data.columns)) == 0:
         raise ValueError(
             "hist method requires numerical or datetime columns, nothing to plot."
         )

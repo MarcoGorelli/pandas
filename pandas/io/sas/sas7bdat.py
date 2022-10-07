@@ -367,8 +367,7 @@ class SAS7BDATReader(ReaderBase, abc.Iterator):
         )
 
     def _parse_metadata(self) -> None:
-        done = False
-        while not done:
+        while not (done := False):
             self._cached_page = self._path_or_buf.read(self._page_length)
             if len(self._cached_page) <= 0:
                 break

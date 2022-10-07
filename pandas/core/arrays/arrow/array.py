@@ -345,8 +345,7 @@ class ArrowExtensionArray(OpsMixin, ExtensionArray):
             )
         # We are not an array indexer, so maybe e.g. a slice or integer
         # indexer. We dispatch to pyarrow.
-        value = self._data[item]
-        if isinstance(value, pa.ChunkedArray):
+        if isinstance((value := self._data[item]), pa.ChunkedArray):
             return type(self)(value)
         else:
             scalar = value.as_py()
@@ -402,8 +401,7 @@ class ArrowExtensionArray(OpsMixin, ExtensionArray):
         return BooleanArray._from_sequence(result)
 
     def _evaluate_op_method(self, other, op, arrow_funcs):
-        pc_func = arrow_funcs[op.__name__]
-        if pc_func is NotImplemented:
+        if (pc_func := arrow_funcs[op.__name__]) is NotImplemented:
             raise NotImplementedError(f"{op.__name__} not implemented.")
         if isinstance(other, ArrowExtensionArray):
             result = pc_func(self._data, other._data)

@@ -27,8 +27,7 @@ class BaseMissingTests(BaseExtensionTests):
     def test_isna_returns_copy(self, data_missing, na_func):
         result = pd.Series(data_missing)
         expected = result.copy()
-        mask = getattr(result, na_func)()
-        if is_sparse(mask):
+        if is_sparse(mask := getattr(result, na_func)()):
             mask = np.array(mask)
 
         mask[:] = True

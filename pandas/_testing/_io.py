@@ -303,8 +303,7 @@ def round_trip_pickle(
     pandas object
         The original object that was pickled and then re-read.
     """
-    _path = path
-    if _path is None:
+    if (_path := path) is None:
         _path = f"__{rands(10)}__.pickle"
     with ensure_clean(_path) as temp_path:
         pd.to_pickle(obj, temp_path)

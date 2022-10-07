@@ -274,8 +274,7 @@ class TestDateTimeConverter:
         ts1 = Timestamp("2012-1-1")
         ts2 = ts1 + offset
         val1 = dtc.convert(ts1, None, None)
-        val2 = dtc.convert(ts2, None, None)
-        if not val1 < val2:
+        if not val1 < (val2 := dtc.convert(ts2, None, None)):
             raise AssertionError(f"{val1} is not less than {val2}.")
 
     def test_convert_nested(self, dtc):

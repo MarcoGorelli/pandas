@@ -174,8 +174,7 @@ def _set_option(*args, **kwargs) -> None:
 
 def _describe_option(pat: str = "", _print_desc: bool = True) -> str | None:
 
-    keys = _select_options(pat)
-    if len(keys) == 0:
+    if len(keys := _select_options(pat)) == 0:
         raise OptionError("No such keys(s)")
 
     s = "\n".join([_build_option_description(k) for k in keys])
@@ -217,8 +216,7 @@ class DictWrapper:
         object.__setattr__(self, "prefix", prefix)
 
     def __setattr__(self, key: str, val: Any) -> None:
-        prefix = object.__getattribute__(self, "prefix")
-        if prefix:
+        if prefix := object.__getattribute__(self, "prefix"):
             prefix += "."
         prefix += key
         # you can't set new keys
@@ -229,8 +227,7 @@ class DictWrapper:
             raise OptionError("You can only set the value of existing options")
 
     def __getattr__(self, key: str):
-        prefix = object.__getattribute__(self, "prefix")
-        if prefix:
+        if prefix := object.__getattribute__(self, "prefix"):
             prefix += "."
         prefix += key
         try:
@@ -641,8 +638,7 @@ def _translate_key(key: str) -> str:
     if key id deprecated and a replacement key defined, will return the
     replacement key, otherwise returns `key` as - is
     """
-    d = _get_deprecated_option(key)
-    if d:
+    if d := _get_deprecated_option(key):
         return d.rkey or key
     else:
         return key
@@ -656,8 +652,7 @@ def _warn_if_deprecated(key: str) -> bool:
     -------
     bool - True if `key` is deprecated, False otherwise.
     """
-    d = _get_deprecated_option(key)
-    if d:
+    if d := _get_deprecated_option(key):
         if d.msg:
             warnings.warn(
                 d.msg,
