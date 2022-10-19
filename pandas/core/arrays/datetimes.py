@@ -315,11 +315,7 @@ class DatetimeArray(dtl.TimelikeOps, dtl.DatelikeOps):
         # if the user either explicitly passes tz=None or a tz-naive dtype, we
         #  disallows inferring a tz.
         explicit_tz_none = tz is None
-        if tz is lib.no_default:
-            tz = None
-        else:
-            tz = timezones.maybe_get_tz(tz)
-
+        tz = None if tz is lib.no_default else timezones.maybe_get_tz(tz)
         dtype = _validate_dt64_dtype(dtype)
         # if dtype has an embedded tz, capture it
         tz = validate_tz_from_dtype(dtype, tz, explicit_tz_none)
@@ -475,11 +471,10 @@ class DatetimeArray(dtl.TimelikeOps, dtl.DatelikeOps):
         else:
             start_i8 = Timestamp(start).value
             end_i8 = Timestamp(end).value
-            if not left_inclusive or not right_inclusive:
-                if not left_inclusive and len(i8values) and i8values[0] == start_i8:
-                    i8values = i8values[1:]
-                if not right_inclusive and len(i8values) and i8values[-1] == end_i8:
-                    i8values = i8values[:-1]
+            if not left_inclusive and len(i8values) and i8values[0] == start_i8:
+                i8values = i8values[1:]
+            if not right_inclusive and len(i8values) and i8values[-1] == end_i8:
+                i8values = i8values[:-1]
 
         dt64_values = i8values.view("datetime64[ns]")
         dtype = tz_to_dtype(tz)
@@ -501,23 +496,25 @@ class DatetimeArray(dtl.TimelikeOps, dtl.DatelikeOps):
         if other is NaT:
             return
         self._assert_tzawareness_compat(other)
-        if setitem:
-            # Stricter check for setitem vs comparison methods
-            if self.tz is not None and not timezones.tz_compare(self.tz, other.tz):
-                # TODO(2.0): remove this check. GH#37605
-                warnings.warn(
-                    "Setitem-like behavior with mismatched timezones is deprecated "
-                    "and will change in a future version. Instead of raising "
-                    "(or for Index, Series, and DataFrame methods, coercing to "
-                    "object dtype), the value being set (or passed as a "
-                    "fill_value, or inserted) will be cast to the existing "
-                    "DatetimeArray/DatetimeIndex/Series/DataFrame column's "
-                    "timezone. To retain the old behavior, explicitly cast to "
-                    "object dtype before the operation.",
-                    FutureWarning,
-                    stacklevel=find_stack_level(),
-                )
-                raise ValueError(f"Timezones don't match. '{self.tz}' != '{other.tz}'")
+        if (
+            setitem
+            and self.tz is not None
+            and not timezones.tz_compare(self.tz, other.tz)
+        ):
+            # TODO(2.0): remove this check. GH#37605
+            warnings.warn(
+                "Setitem-like behavior with mismatched timezones is deprecated "
+                "and will change in a future version. Instead of raising "
+                "(or for Index, Series, and DataFrame methods, coercing to "
+                "object dtype), the value being set (or passed as a "
+                "fill_value, or inserted) will be cast to the existing "
+                "DatetimeArray/DatetimeIndex/Series/DataFrame column's "
+                "timezone. To retain the old behavior, explicitly cast to "
+                "object dtype before the operation.",
+                FutureWarning,
+                stacklevel=find_stack_level(),
+            )
+            raise ValueError(f"Timezones don't match. '{self.tz}' != '{other.tz}'")
 
     # -----------------------------------------------------------------
     # Descriptive Properties
@@ -629,14 +626,13 @@ class DatetimeArray(dtl.TimelikeOps, dtl.DatelikeOps):
             for i in range(chunks):
                 start_i = i * chunksize
                 end_i = min((i + 1) * chunksize, length)
-                converted = ints_to_pydatetime(
+                yield from ints_to_pydatetime(
                     data[start_i:end_i],
                     tz=self.tz,
                     freq=self.freq,
                     box="timestamp",
                     reso=self._creso,
                 )
-                yield from converted
 
     def astype(self, dtype, copy: bool = True):
         # We handle
@@ -646,10 +642,7 @@ class DatetimeArray(dtl.TimelikeOps, dtl.DatelikeOps):
         dtype = pandas_dtype(dtype)
 
         if is_dtype_equal(dtype, self.dtype):
-            if copy:
-                return self.copy()
-            return self
-
+            return self.copy() if copy else self
         elif (
             self.tz is None
             and is_datetime64_dtype(dtype)
@@ -748,11 +741,7 @@ class DatetimeArray(dtl.TimelikeOps, dtl.DatelikeOps):
 
         assert not isinstance(offset, Tick)
 
-        if self.tz is not None:
-            values = self.tz_localize(None)
-        else:
-            values = self
-
+        values = self.tz_localize(None) if self.tz is not None else self
         try:
             result = offset._apply_array(values).view(values.dtype)
         except NotImplementedError:
@@ -1022,12 +1011,7 @@ default 'raise'
                 "a timedelta object"
             )
 
-        if self.tz is not None:
-            if tz is None:
-                new_dates = tz_convert_from_utc(self.asi8, self.tz)
-            else:
-                raise TypeError("Already tz-aware, use tz_convert to convert.")
-        else:
+        if self.tz is None:
             tz = timezones.maybe_get_tz(tz)
             # Convert to UTC
 
@@ -1038,6 +1022,10 @@ default 'raise'
                 nonexistent=nonexistent,
                 creso=self._creso,
             )
+        elif tz is None:
+            new_dates = tz_convert_from_utc(self.asi8, self.tz)
+        else:
+            raise TypeError("Already tz-aware, use tz_convert to convert.")
         new_dates = new_dates.view(f"M8[{self._unit}]")
         dtype = tz_to_dtype(tz, unit=self._unit)
 
@@ -2021,8 +2009,7 @@ def sequence_to_datetimes(data, require_iso8601: bool = False) -> DatetimeArray:
 
     unit = np.datetime_data(result.dtype)[0]
     dtype = tz_to_dtype(tz, unit)
-    dta = DatetimeArray._simple_new(result, freq=freq, dtype=dtype)
-    return dta
+    return DatetimeArray._simple_new(result, freq=freq, dtype=dtype)
 
 
 def _sequence_to_dt64ns(
@@ -2064,15 +2051,11 @@ def _sequence_to_dt64ns(
     ------
     TypeError : PeriodDType data is passed
     """
-    inferred_freq = None
-
     data, copy = dtl.ensure_arraylike_for_datetimelike(
         data, copy, cls_name="DatetimeArray"
     )
 
-    if isinstance(data, DatetimeArray):
-        inferred_freq = data.freq
-
+    inferred_freq = data.freq if isinstance(data, DatetimeArray) else None
     # By this point we are assured to have either a numpy array or Index
     data, copy = maybe_convert_dtype(data, copy, tz=tz)
     data_dtype = getattr(data, "dtype", None)
@@ -2459,14 +2442,16 @@ def validate_tz_from_dtype(
                 raise ValueError("Cannot pass both a timezone-aware dtype and tz=None")
             tz = dtz
 
-        if tz is not None and is_datetime64_dtype(dtype):
-            # We also need to check for the case where the user passed a
-            #  tz-naive dtype (i.e. datetime64[ns])
-            if tz is not None and not timezones.tz_compare(tz, dtz):
-                raise ValueError(
-                    "cannot supply both a tz and a "
-                    "timezone-naive dtype (i.e. datetime64[ns])"
-                )
+        if (
+            tz is not None
+            and is_datetime64_dtype(dtype)
+            and tz is not None
+            and not timezones.tz_compare(tz, dtz)
+        ):
+            raise ValueError(
+                "cannot supply both a tz and a "
+                "timezone-naive dtype (i.e. datetime64[ns])"
+            )
 
     return tz
 

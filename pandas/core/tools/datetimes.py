@@ -177,18 +177,13 @@ def should_cache(
     than 5000, then we check only the first 500 elements.
     All constants were chosen empirically by.
     """
-    do_caching = True
-
     # default realization
     if check_count is None:
         # in this case, the gain from caching is negligible
         if len(arg) <= start_caching_at:
             return False
 
-        if len(arg) <= 5000:
-            check_count = len(arg) // 10
-        else:
-            check_count = 500
+        check_count = len(arg) // 10 if len(arg) <= 5000 else 500
     else:
         assert (
             0 <= check_count <= len(arg)
@@ -203,9 +198,7 @@ def should_cache(
         unique_elements = set(islice(arg, check_count))
     except TypeError:
         return False
-    if len(unique_elements) > check_count * unique_share:
-        do_caching = False
-    return do_caching
+    return len(unique_elements) <= check_count * unique_share
 
 
 def _maybe_cache(
@@ -422,8 +415,7 @@ def _convert_listlike_datetimes(
             npvalues = np.array(["NaT"], dtype="datetime64[ns]").repeat(len(arg))
             return DatetimeIndex(npvalues, name=name)
         elif errors == "ignore":
-            idx = Index(arg, name=name)
-            return idx
+            return Index(arg, name=name)
         raise
 
     arg = ensure_object(arg)
@@ -540,9 +532,7 @@ def _to_datetime_with_format(
             utc = tz == "utc"
             return _box_as_indexlike(result, utc=utc, name=name)
 
-    # fallback
-    res = _array_strptime_with_fallback(arg, name, tz, fmt, exact, errors)
-    return res
+    return _array_strptime_with_fallback(arg, name, tz, fmt, exact, errors)
 
 
 def _to_datetime_with_unit(arg, unit, name, tz, errors: str) -> Index:
@@ -575,10 +565,7 @@ def _to_datetime_with_unit(arg, unit, name, tz, errors: str) -> Index:
     result = result.tz_localize("UTC").tz_convert(tz_parsed)
 
     if tz is not None:
-        if result.tz is None:
-            result = result.tz_localize(tz)
-        else:
-            result = result.tz_convert(tz)
+        result = result.tz_localize(tz) if result.tz is None else result.tz_convert(tz)
     return result
 
 
@@ -1075,10 +1062,7 @@ def to_datetime(
     if isinstance(arg, Timestamp):
         result = arg
         if tz is not None:
-            if arg.tz is not None:
-                result = arg.tz_convert(tz)
-            else:
-                result = arg.tz_localize(tz)
+            result = arg.tz_convert(tz) if arg.tz is not None else arg.tz_localize(tz)
     elif isinstance(arg, ABCSeries):
         cache_array = _maybe_cache(arg, format, cache, convert_listlike)
         if not cache_array.empty:
@@ -1090,10 +1074,12 @@ def to_datetime(
         result = _assemble_from_unit_mappings(arg, errors, tz)
     elif isinstance(arg, Index):
         cache_array = _maybe_cache(arg, format, cache, convert_listlike)
-        if not cache_array.empty:
-            result = _convert_and_box_cache(arg, cache_array, name=arg.name)
-        else:
-            result = convert_listlike(arg, format, name=arg.name)
+        result = (
+            convert_listlike(arg, format, name=arg.name)
+            if cache_array.empty
+            else _convert_and_box_cache(arg, cache_array, name=arg.name)
+        )
+
     elif is_list_like(arg):
         try:
             # error: Argument 1 to "_maybe_cache" has incompatible type
@@ -1113,10 +1099,12 @@ def to_datetime(
             from pandas import Series
 
             cache_array = Series([], dtype=object)  # just an empty array
-        if not cache_array.empty:
-            result = _convert_and_box_cache(argc, cache_array)
-        else:
-            result = convert_listlike(argc, format)
+        result = (
+            convert_listlike(argc, format)
+            if cache_array.empty
+            else _convert_and_box_cache(argc, cache_array)
+        )
+
     else:
         result = convert_listlike(np.array([arg]), format)[0]
         if isinstance(arg, bool) and isinstance(result, np.bool_):
@@ -1189,10 +1177,7 @@ def _assemble_from_unit_mappings(arg, errors: DateTimeErrorChoices, tz):
             return _unit_map[value]
 
         # m is case significant
-        if value.lower() in _unit_map:
-            return _unit_map[value.lower()]
-
-        return value
+        return _unit_map[value.lower()] if value.lower() in _unit_map else value
 
     unit = {k: f(k) for k in arg.keys()}
     unit_rev = {v: k for k, v in unit.items()}

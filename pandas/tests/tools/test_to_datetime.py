@@ -598,10 +598,13 @@ class TestToDatetime:
         # locale specific, but the test data is in english.
         # Therefore, the tests only run when locale is not overwritten,
         # as a sort of solution to this problem.
-        if locale.getlocale() != ("zh_CN", "UTF-8") and locale.getlocale() != (
-            "it_IT",
-            "UTF-8",
-        ):
+        if locale.getlocale() not in [
+            ("zh_CN", "UTF-8"),
+            (
+                "it_IT",
+                "UTF-8",
+            ),
+        ]:
             with pytest.raises(ValueError, match=msg):
                 to_datetime(s, format=_format)
 
@@ -935,7 +938,7 @@ class TestToDatetime:
     def test_datetime_bool_arrays_mixed(self, cache):
         msg = f"{type(cache)} is not convertible to datetime"
         with pytest.raises(TypeError, match=msg):
-            to_datetime([False, datetime.today()], cache=cache)
+            to_datetime([False, datetime.now()], cache=cache)
         with pytest.raises(
             ValueError,
             match=r"^time data 'True' does not match format '%Y%m%d' \(match\)$",
@@ -1970,11 +1973,7 @@ class TestToDatetimeMisc:
 
         expected = np.empty(4, dtype="M8[ns]")
         for i, val in enumerate(strings):
-            if isna(val):
-                expected[i] = iNaT
-            else:
-                expected[i] = parse(val)
-
+            expected[i] = iNaT if isna(val) else parse(val)
         result = tslib.array_to_datetime(strings)[0]
         tm.assert_almost_equal(result, expected)
 
@@ -2028,11 +2027,7 @@ class TestToDatetimeMisc:
         expected = Series(np.empty(5, dtype="M8[ns]"), index=idx)
         for i in range(5):
             x = series[i]
-            if isna(x):
-                expected[i] = NaT
-            else:
-                expected[i] = to_datetime(x, cache=cache)
-
+            expected[i] = NaT if isna(x) else to_datetime(x, cache=cache)
         tm.assert_series_equal(result, expected, check_names=False)
         assert result.name == "foo"
 
