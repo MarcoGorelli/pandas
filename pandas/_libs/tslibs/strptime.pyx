@@ -1,9 +1,13 @@
 """Strptime-related classes and functions.
 """
 from cpython.datetime cimport (
+    PyDateTime_Check,
     date,
+    import_datetime,
     tzinfo,
 )
+
+import_datetime()
 
 from _thread import allocate_lock as _thread_allocate_lock
 
@@ -16,6 +20,7 @@ from numpy cimport (
 )
 
 from pandas._libs.missing cimport checknull_with_nat_and_na
+from pandas._libs.tslibs.conversion cimport handle_pydatetime
 from pandas._libs.tslibs.nattype cimport (
     NPY_NAT,
     c_nat_strings as nat_strings,
@@ -78,6 +83,11 @@ def array_strptime(ndarray[object] values, str fmt, bint exact=True, errors='rai
         bint is_raise = errors=='raise'
         bint is_ignore = errors=='ignore'
         bint is_coerce = errors=='coerce'
+        bint utc=False
+        bint found_tz=False
+        tzinfo tz_out = None
+        bint found_naive=False
+        bint utc_convert = bool(utc)
 
     assert is_raise or is_ignore or is_coerce
 
@@ -128,6 +138,12 @@ def array_strptime(ndarray[object] values, str fmt, bint exact=True, errors='rai
             if val in nat_strings:
                 iresult[i] = NPY_NAT
                 continue
+        elif PyDateTime_Check(val):
+            seen_datetime = True
+            iresult[i], found_naive, found_tz, tz_out = handle_pydatetime(
+                val, utc_convert, found_tz, found_naive, &dts, tz_out,
+            )
+            continue
         else:
             if checknull_with_nat_and_na(val):
                 iresult[i] = NPY_NAT

@@ -41,9 +41,12 @@ from pandas._libs.tslibs.np_datetime cimport (
     npy_datetimestruct,
     npy_datetimestruct_to_datetime,
     pandas_datetime_to_datetimestruct,
+    pydatetime_to_dt64,
     pydatetime_to_dtstruct,
     string_to_dts,
 )
+from pandas._libs.tslibs.timestamps cimport _Timestamp
+from pandas._libs.tslibs.timezones cimport tz_compare
 
 from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime
 
@@ -642,3 +645,45 @@ cpdef inline datetime localize_pydatetime(datetime dt, tzinfo tz):
     elif isinstance(dt, ABCTimestamp):
         return dt.tz_localize(tz)
     return _localize_pydatetime(dt, tz)
+
+
+cdef object handle_pydatetime(
+        val,
+        utc_convert,
+        found_tz,
+        found_naive,
+        npy_datetimestruct *dts,
+        tz_out,
+):
+    if val.tzinfo is not None:
+        found_tz = True
+        if utc_convert:
+            _ts = convert_datetime_to_tsobject(val, None)
+            _ts.ensure_reso(NPY_FR_ns)
+            iresult = _ts.value
+        elif found_naive:
+            raise ValueError('Tz-aware datetime.datetime '
+                             'cannot be converted to '
+                             'datetime64 unless utc=True')
+        elif tz_out is not None and not tz_compare(tz_out, val.tzinfo):
+            raise ValueError('Tz-aware datetime.datetime '
+                             'cannot be converted to '
+                             'datetime64 unless utc=True')
+        else:
+            found_tz = True
+            tz_out = val.tzinfo
+            _ts = convert_datetime_to_tsobject(val, None)
+            _ts.ensure_reso(NPY_FR_ns)
+            iresult = _ts.value
+
+    else:
+        found_naive = True
+        if found_tz and not utc_convert:
+            raise ValueError('Cannot mix tz-aware with '
+                             'tz-naive values')
+        if isinstance(val, _Timestamp):
+            iresult = val.as_unit("ns").value
+        else:
+            iresult = pydatetime_to_dt64(val, dts)
+            check_dts_bounds(dts)
+    return iresult, found_naive, found_tz, tz_out

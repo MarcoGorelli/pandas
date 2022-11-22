@@ -40,3 +40,12 @@ cdef int64_t cast_from_unit(object ts, str unit) except? -1
 cpdef (int64_t, int) precision_from_unit(str unit)
 
 cdef maybe_localize_tso(_TSObject obj, tzinfo tz, NPY_DATETIMEUNIT reso)
+
+cdef object handle_pydatetime(
+        val,
+        utc_convert,
+        found_tz,
+        found_naive,
+        npy_datetimestruct *dts,
+        tz_out,
+)
