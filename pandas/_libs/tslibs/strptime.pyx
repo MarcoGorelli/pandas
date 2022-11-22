@@ -139,10 +139,12 @@ def array_strptime(ndarray[object] values, str fmt, bint exact=True, errors='rai
                 iresult[i] = NPY_NAT
                 continue
         elif PyDateTime_Check(val):
-            seen_datetime = True
-            iresult[i], found_naive, found_tz, timezone = handle_pydatetime(
+            # seen_datetime = True
+            iresult[i], found_naive, found_tz, tz_out = handle_pydatetime(
                 val, utc_convert, found_tz, found_naive, &dts, tz_out,
             )
+            print('tz_out', tz_out)
+            result_timezone[i] = tz_out
             continue
         else:
             if checknull_with_nat_and_na(val):
@@ -356,6 +358,7 @@ def array_strptime(ndarray[object] values, str fmt, bint exact=True, errors='rai
 
         result_timezone[i] = timezone
 
+    print('result timezone base', result_timezone.base)
     return result, result_timezone.base
 
 
