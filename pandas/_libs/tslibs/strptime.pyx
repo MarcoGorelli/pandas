@@ -31,6 +31,7 @@ from pandas._libs.tslibs.np_datetime cimport (
     npy_datetimestruct,
     npy_datetimestruct_to_datetime,
 )
+from pandas._libs.tslibs.timezones cimport tz_compare
 
 
 cdef dict _parse_code_table = {'y': 0,
@@ -74,7 +75,6 @@ def array_strptime(ndarray[object] values, str fmt, bint exact=True, errors='rai
         Py_ssize_t i, n = len(values)
         npy_datetimestruct dts
         int64_t[::1] iresult
-        object[::1] result_timezone
         int year, month, day, minute, hour, second, weekday, julian
         int week_of_year, week_of_year_start, parse_code, ordinal
         int iso_week, iso_year
@@ -128,7 +128,6 @@ def array_strptime(ndarray[object] values, str fmt, bint exact=True, errors='rai
 
     result = np.empty(n, dtype='M8[ns]')
     iresult = result.view('i8')
-    result_timezone = np.empty(n, dtype='object')
 
     dts.us = dts.ps = dts.as = 0
 
@@ -144,7 +143,7 @@ def array_strptime(ndarray[object] values, str fmt, bint exact=True, errors='rai
                 val, utc_convert, found_tz, found_naive, &dts, tz_out,
             )
             print('tz_out', tz_out)
-            result_timezone[i] = tz_out
+            # result_timezone[i] = tz_out
             continue
         else:
             if checknull_with_nat_and_na(val):
@@ -356,10 +355,13 @@ def array_strptime(ndarray[object] values, str fmt, bint exact=True, errors='rai
                 continue
             raise
 
-        result_timezone[i] = timezone
+        if tz_out is not None and not tz_compare(tz_out, timezone):
+            raise ValueError('Tz-aware datetime.datetime '
+                             'cannot be converted to '
+                             'datetime64 unless utc=True')
 
-    print('result timezone base', result_timezone.base)
-    return result, result_timezone.base
+    print('result timezone base', tz_out)
+    return result, tz_out
 
 
 """

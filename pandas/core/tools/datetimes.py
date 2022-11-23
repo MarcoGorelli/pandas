@@ -261,7 +261,7 @@ def _box_as_indexlike(
     """
 
     if is_datetime64_dtype(dt_array):
-        tz = "utc" if utc else None
+        tz = "utc" if utc else tz
         return DatetimeIndex(dt_array, tz=tz, name=name)
     return Index(dt_array, name=name, dtype=dt_array.dtype)
 
@@ -469,6 +469,7 @@ def _array_strptime_with_fallback(
     """
     try:
         result, timezones = array_strptime(arg, fmt, exact=exact, errors=errors)
+        print("sup", timezones)
     except OutOfBoundsDatetime:
         if errors == "raise":
             raise
@@ -498,7 +499,7 @@ def _array_strptime_with_fallback(
         if "%Z" in fmt or "%z" in fmt:
             return _return_parsed_timezone_results(result, timezones, utc, name)
 
-    return _box_as_indexlike(result, utc=utc, name=name)
+    return _box_as_indexlike(result, utc=utc, name=name, tz=timezones)
 
 
 def _to_datetime_with_format(
