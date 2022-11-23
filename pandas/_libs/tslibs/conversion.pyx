@@ -647,7 +647,7 @@ cpdef inline datetime localize_pydatetime(datetime dt, tzinfo tz):
     return _localize_pydatetime(dt, tz)
 
 
-cdef object handle_pydatetime(
+cdef handle_pydatetime(
         val,
         utc_convert,
         found_tz,

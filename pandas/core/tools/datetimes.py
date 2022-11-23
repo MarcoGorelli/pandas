@@ -261,7 +261,7 @@ def _box_as_indexlike(
     """
 
     if is_datetime64_dtype(dt_array):
-        tz = "utc" if utc else tz
+        tz = "utc" if utc else None
         return DatetimeIndex(dt_array, tz=tz, name=name)
     return Index(dt_array, name=name, dtype=dt_array.dtype)
 
@@ -496,6 +496,9 @@ def _array_strptime_with_fallback(
             # Indicates to the caller to fallback to objects_to_datetime64ns
             return None
     else:
+        # gotta actually collect the timezones man!
+        # we'll sort that out after lunch, but it's gonna happen
+        # gonna sort this mofo out!
         if not all(timezones == None):  # noqa: E711
             return _return_parsed_timezone_results(result, timezones, utc, name)
 
