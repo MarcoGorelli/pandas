@@ -941,6 +941,8 @@ class Block(PandasObject):
         except LossySetitemError:
             # current dtype cannot store value, coerce to common dtype
             nb = self.coerce_to_target_dtype(value)
+            if nb.dtype != self.dtype:
+                raise TypeError("Incompatible types")
             return nb.setitem(indexer, value)
         else:
             if self.dtype == _dtype_obj:
@@ -1394,10 +1396,14 @@ class EABackedBlock(Block):
             if is_interval_dtype(self.dtype):
                 # see TestSetitemFloatIntervalWithIntIntervalValues
                 nb = self.coerce_to_target_dtype(orig_value)
+                if nb.dtype != self.dtype:
+                    raise err
                 return nb.setitem(orig_indexer, orig_value)
 
             elif isinstance(self, NDArrayBackedExtensionBlock):
                 nb = self.coerce_to_target_dtype(orig_value)
+                if nb.dtype != self.dtype:
+                    raise err
                 return nb.setitem(orig_indexer, orig_value)
 
             else:

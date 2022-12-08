@@ -803,13 +803,13 @@ def test_column_as_series_set_with_upcast(using_copy_on_write, using_array_manag
 
     s = df["a"]
     if using_copy_on_write or using_array_manager:
-        s[0] = "foo"
+        s[0] = 42
     else:
         with pd.option_context("chained_assignment", "warn"):
             with tm.assert_produces_warning(SettingWithCopyWarning):
-                s[0] = "foo"
+                s[0] = 42
 
-    expected = Series(["foo", 2, 3], dtype=object, name="a")
+    expected = Series([42, 2, 3], name="a")
     tm.assert_series_equal(s, expected)
     if using_copy_on_write:
         tm.assert_frame_equal(df, df_orig)

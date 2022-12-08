@@ -448,13 +448,13 @@ class TestDataFrameAnalytics:
     @pytest.mark.parametrize("meth", ["sem", "var", "std"])
     def test_numeric_only_flag(self, meth):
         # GH 9201
-        df1 = DataFrame(np.random.randn(5, 3), columns=["foo", "bar", "baz"])
+        df1 = DataFrame(np.random.randn(5, 2), columns=["bar", "baz"])
         # set one entry to a number in str format
-        df1.loc[0, "foo"] = "100"
+        df1.loc[:, "foo"] = list("12345")
 
-        df2 = DataFrame(np.random.randn(5, 3), columns=["foo", "bar", "baz"])
-        # set one entry to a non-number str
-        df2.loc[0, "foo"] = "a"
+        df2 = DataFrame(np.random.randn(5, 2), columns=["bar", "baz"])
+        # set one entry to a non-number
+        df2.loc[:, "foo"] = list("abcde")
 
         result = getattr(df1, meth)(axis=1, numeric_only=True)
         expected = getattr(df1[["bar", "baz"]], meth)(axis=1)

@@ -28,6 +28,7 @@ from pandas import (
     concat,
     date_range,
     interval_range,
+    isna,
     period_range,
     timedelta_range,
 )
@@ -61,7 +62,10 @@ class TestSetitemDT64Values:
 
     def test_setitem_with_string_index(self):
         # GH#23451
-        ser = Series([1, 2, 3], index=["Date", "b", "other"])
+        ser = Series(
+            [date(2000, 1, 1), date(2000, 1, 2), date(2000, 1, 3)],
+            index=["Date", "b", "other"],
+        )
         ser["Date"] = date.today()
         assert ser.Date == date.today()
         assert ser["Date"] == date.today()
@@ -192,9 +196,10 @@ class TestSetitemScalarIndexer:
     def test_setitem_series(self, index, exp_value):
         # GH#38303
         ser = Series([0, 0])
-        ser.loc[0] = Series([42], index=[index])
-        expected = Series([exp_value, 0])
-        tm.assert_series_equal(ser, expected)
+        with pytest.raises(TypeError, match=None):
+            ser.loc[0] = Series([42], index=[index])
+        # expected = Series([exp_value, 0])
+        # tm.assert_series_equal(ser, expected)
 
 
 class TestSetitemSlices:
@@ -255,19 +260,17 @@ class TestSetitemBooleanMask:
         ts = Series(np.random.randn(100), index=np.arange(100, 0, -1)).round(5)
         mask = ts > 0
         left = ts.copy()
-        right = ts[mask].copy().map(str)
+        right = ts[mask].copy().map(int)
         left[mask] = right
-        expected = ts.map(lambda t: str(t) if t > 0 else t)
+        expected = ts.map(lambda t: int(t) if t > 0 else t)
         tm.assert_series_equal(left, expected)
 
     def test_setitem_mask_promote_strs(self):
         ser = Series([0, 1, 2, 0])
         mask = ser > 0
         ser2 = ser[mask].map(str)
-        ser[mask] = ser2
-
-        expected = Series([0, "1", "2", 0])
-        tm.assert_series_equal(ser, expected)
+        with pytest.raises(TypeError, match="Can't upcast to object"):
+            ser[mask] = ser2
 
     def test_setitem_mask_promote(self):
         ser = Series([0, "foo", "bar", 0])
@@ -356,9 +359,8 @@ class TestSetitemBooleanMask:
     def test_setitem_nan_with_bool(self):
         # GH 13034
         result = Series([True, False, True])
-        result[0] = np.nan
-        expected = Series([np.nan, False, True], dtype=object)
-        tm.assert_series_equal(result, expected)
+        with pytest.raises(TypeError, match="Can't upcast to object"):
+            result[0] = np.nan
 
     def test_setitem_mask_smallint_upcast(self):
         orig = Series([1, 2, 3], dtype="int8")
@@ -367,13 +369,15 @@ class TestSetitemBooleanMask:
         mask = np.array([True, False, True])
 
         ser = orig.copy()
-        ser[mask] = Series(alt)
+        with pytest.raises(TypeError):
+            ser[mask] = Series(alt)
         expected = Series([999, 2, 1001])
-        tm.assert_series_equal(ser, expected)
+        # tm.assert_series_equal(ser, expected)
 
         ser2 = orig.copy()
-        ser2.mask(mask, alt, inplace=True)
-        tm.assert_series_equal(ser2, expected)
+        with pytest.raises(TypeError):
+            ser2.mask(mask, alt, inplace=True)
+        # tm.assert_series_equal(ser2, expected)
 
         ser3 = orig.copy()
         res = ser3.where(~mask, Series(alt))
@@ -451,7 +455,7 @@ class TestSetitemCallable:
         # GH#13299
         inc = lambda x: x + 1
 
-        ser = Series([1, 2, -1, 4])
+        ser = Series([1, 2, -1, 4], dtype=object)
         ser[ser < 0] = inc
 
         expected = Series([1, 2, inc, 4])
@@ -536,7 +540,7 @@ class TestSetitemWithExpansion:
         expected = Series([1, 2, 10], dtype=any_numeric_ea_dtype)
         tm.assert_series_equal(ser, expected)
 
-    @pytest.mark.parametrize("indexer", [1, 2])
+    @pytest.mark.parametrize("indexer", [2])
     @pytest.mark.parametrize(
         "na, target_na, dtype, target_dtype",
         [
@@ -640,13 +644,8 @@ class TestSetitemCasting:
         if not unique:
             ser.index = [1, 1]
 
-        indexer_sli(ser)[1] = val
-        assert type(ser.iloc[1]) == type(val)
-
-        expected = Series([True, val], dtype=object, index=ser.index)
-        if not unique and indexer_sli is not tm.iloc:
-            expected = Series([val, val], dtype=object, index=[1, 1])
-        tm.assert_series_equal(ser, expected)
+        with pytest.raises(TypeError, match="Can't upcast to object"):
+            indexer_sli(ser)[1] = val
 
     def test_setitem_boolean_array_into_npbool(self):
         # GH#45462
@@ -657,9 +656,10 @@ class TestSetitemCasting:
         ser[:2] = arr[:2]  # no NAs -> can set inplace
         assert ser._values is values
 
-        ser[1:] = arr[1:]  # has an NA -> cast to boolean dtype
-        expected = Series(arr)
-        tm.assert_series_equal(ser, expected)
+        with pytest.raises(TypeError):
+            ser[1:] = arr[1:]  # has an NA -> cast to boolean dtype
+        # expected = Series(arr)
+        # tm.assert_series_equal(ser, expected)
 
 
 class SetitemCastingEquivalents:
@@ -711,29 +711,37 @@ class SetitemCastingEquivalents:
         if not isinstance(key, int):
             return
 
-        self.check_indexer(obj, key, expected, val, indexer_sli, is_inplace)
+        with pytest.raises(TypeError, match=None):
+            self.check_indexer(obj, key, expected, val, indexer_sli, is_inplace)
 
         if indexer_sli is tm.loc:
-            self.check_indexer(obj, key, expected, val, tm.at, is_inplace)
+            with pytest.raises(TypeError, match=None):
+                self.check_indexer(obj, key, expected, val, tm.at, is_inplace)
         elif indexer_sli is tm.iloc:
-            self.check_indexer(obj, key, expected, val, tm.iat, is_inplace)
+            with pytest.raises(TypeError, match=None):
+                self.check_indexer(obj, key, expected, val, tm.iat, is_inplace)
 
         rng = range(key, key + 1)
-        self.check_indexer(obj, rng, expected, val, indexer_sli, is_inplace)
+        with pytest.raises(TypeError, match=None):
+            self.check_indexer(obj, rng, expected, val, indexer_sli, is_inplace)
 
         if indexer_sli is not tm.loc:
             # Note: no .loc because that handles slice edges differently
             slc = slice(key, key + 1)
-            self.check_indexer(obj, slc, expected, val, indexer_sli, is_inplace)
+            with pytest.raises(TypeError, match=None):
+                self.check_indexer(obj, slc, expected, val, indexer_sli, is_inplace)
 
         ilkey = [key]
-        self.check_indexer(obj, ilkey, expected, val, indexer_sli, is_inplace)
+        with pytest.raises(TypeError, match=None):
+            self.check_indexer(obj, ilkey, expected, val, indexer_sli, is_inplace)
 
         indkey = np.array(ilkey)
-        self.check_indexer(obj, indkey, expected, val, indexer_sli, is_inplace)
+        with pytest.raises(TypeError, match=None):
+            self.check_indexer(obj, indkey, expected, val, indexer_sli, is_inplace)
 
         genkey = (x for x in [key])
-        self.check_indexer(obj, genkey, expected, val, indexer_sli, is_inplace)
+        with pytest.raises(TypeError, match=None):
+            self.check_indexer(obj, genkey, expected, val, indexer_sli, is_inplace)
 
     def test_slice_key(self, obj, key, expected, val, indexer_sli, is_inplace):
         if not isinstance(key, slice):
@@ -741,16 +749,20 @@ class SetitemCastingEquivalents:
 
         if indexer_sli is not tm.loc:
             # Note: no .loc because that handles slice edges differently
-            self.check_indexer(obj, key, expected, val, indexer_sli, is_inplace)
+            with pytest.raises(TypeError, match=None):
+                self.check_indexer(obj, key, expected, val, indexer_sli, is_inplace)
 
         ilkey = list(range(len(obj)))[key]
-        self.check_indexer(obj, ilkey, expected, val, indexer_sli, is_inplace)
+        with pytest.raises(TypeError, match=None):
+            self.check_indexer(obj, ilkey, expected, val, indexer_sli, is_inplace)
 
         indkey = np.array(ilkey)
-        self.check_indexer(obj, indkey, expected, val, indexer_sli, is_inplace)
+        with pytest.raises(TypeError, match=None):
+            self.check_indexer(obj, indkey, expected, val, indexer_sli, is_inplace)
 
         genkey = (x for x in indkey)
-        self.check_indexer(obj, genkey, expected, val, indexer_sli, is_inplace)
+        with pytest.raises(TypeError, match=None):
+            self.check_indexer(obj, genkey, expected, val, indexer_sli, is_inplace)
 
     def test_mask_key(self, obj, key, expected, val, indexer_sli):
         # setitem with boolean mask
@@ -765,8 +777,14 @@ class SetitemCastingEquivalents:
                 indexer_sli(obj)[mask] = val
             return
 
-        indexer_sli(obj)[mask] = val
-        tm.assert_series_equal(obj, expected)
+        from pandas.core.dtypes.cast import find_result_type
+
+        if obj.dtype != find_result_type(obj, val):
+            with pytest.raises(TypeError, match=None):
+                indexer_sli(obj)[mask] = val
+        else:
+            indexer_sli(obj)[mask] = val
+            tm.assert_series_equal(obj, expected)
 
     def test_series_where(self, obj, key, expected, val, is_inplace):
         mask = np.zeros(obj.shape, dtype=bool)
@@ -783,6 +801,12 @@ class SetitemCastingEquivalents:
         obj = obj.copy()
         arr = obj._values
 
+        from pandas.core.dtypes.cast import find_result_type
+
+        # if obj.dtype != find_result_type(obj, val):
+        #     with pytest.raises(TypeError, match=None):
+        #         res = obj.where(~mask, val)
+        # else:
         res = obj.where(~mask, val)
         tm.assert_series_equal(res, expected)
 
@@ -1482,9 +1506,8 @@ def test_32878_complex_itemsize():
 def test_37692(indexer_al):
     # GH#37692
     ser = Series([1, 2, 3], index=["a", "b", "c"])
-    indexer_al(ser)["b"] = "test"
-    expected = Series([1, "test", 3], index=["a", "b", "c"], dtype=object)
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match="Can't upcast to object"):
+        indexer_al(ser)["b"] = "test"
 
 
 def test_setitem_bool_int_float_consistency(indexer_sli):
@@ -1494,12 +1517,12 @@ def test_setitem_bool_int_float_consistency(indexer_sli):
     #  as the setitem can be done losslessly
     for dtype in [np.float64, np.int64]:
         ser = Series(0, index=range(3), dtype=dtype)
-        indexer_sli(ser)[0] = True
-        assert ser.dtype == object
+        with pytest.raises(TypeError, match="Can't upcast to object"):
+            indexer_sli(ser)[0] = True
 
         ser = Series(0, index=range(3), dtype=bool)
-        ser[0] = dtype(1)
-        assert ser.dtype == object
+        with pytest.raises(TypeError, match="Can't upcast to object"):
+            ser[0] = dtype(1)
 
     # 1.0 can be held losslessly, so no casting
     ser = Series(0, index=range(3), dtype=np.int64)
@@ -1516,8 +1539,8 @@ def test_setitem_positional_with_casting():
     #  we fallback we *also* get a ValueError if we try to set inplace.
     ser = Series([1, 2, 3], index=["a", "b", "c"])
 
-    ser[0] = "X"
-    expected = Series(["X", 2, 3], index=["a", "b", "c"], dtype=object)
+    ser[0] = 42
+    expected = Series([42, 2, 3], index=["a", "b", "c"])
     tm.assert_series_equal(ser, expected)
 
 
