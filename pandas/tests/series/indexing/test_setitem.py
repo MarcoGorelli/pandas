@@ -192,14 +192,20 @@ class TestSetitemScalarIndexer:
         expected = Series([Series([42], index=[ser_index]), 0], dtype="object")
         tm.assert_series_equal(ser, expected)
 
-    @pytest.mark.parametrize("index, exp_value", [(0, 42), (1, np.nan)])
+    @pytest.mark.parametrize("index, exp_value", [(0, 42)])
     def test_setitem_series(self, index, exp_value):
+        # GH#38303
+        ser = Series([0, 0])
+        ser.loc[0] = Series([42], index=[index])
+        expected = Series([exp_value, 0])
+        tm.assert_series_equal(ser, expected)
+
+    @pytest.mark.parametrize("index, exp_value", [(1, np.nan)])
+    def test_setitem_series_raises(self, index, exp_value):
         # GH#38303
         ser = Series([0, 0])
         with pytest.raises(TypeError, match=None):
             ser.loc[0] = Series([42], index=[index])
-        # expected = Series([exp_value, 0])
-        # tm.assert_series_equal(ser, expected)
 
 
 class TestSetitemSlices:
@@ -269,7 +275,7 @@ class TestSetitemBooleanMask:
         ser = Series([0, 1, 2, 0])
         mask = ser > 0
         ser2 = ser[mask].map(str)
-        with pytest.raises(TypeError, match="Can't upcast to object"):
+        with pytest.raises(TypeError, match="Incompatible types"):
             ser[mask] = ser2
 
     def test_setitem_mask_promote(self):
@@ -359,7 +365,7 @@ class TestSetitemBooleanMask:
     def test_setitem_nan_with_bool(self):
         # GH 13034
         result = Series([True, False, True])
-        with pytest.raises(TypeError, match="Can't upcast to object"):
+        with pytest.raises(TypeError, match="Incompatible types"):
             result[0] = np.nan
 
     def test_setitem_mask_smallint_upcast(self):
@@ -644,7 +650,7 @@ class TestSetitemCasting:
         if not unique:
             ser.index = [1, 1]
 
-        with pytest.raises(TypeError, match="Can't upcast to object"):
+        with pytest.raises(TypeError, match="Incompatible types"):
             indexer_sli(ser)[1] = val
 
     def test_setitem_boolean_array_into_npbool(self):
@@ -779,6 +785,7 @@ class SetitemCastingEquivalents:
 
         from pandas.core.dtypes.cast import find_result_type
 
+        breakpoint()
         if obj.dtype != find_result_type(obj, val):
             with pytest.raises(TypeError, match=None):
                 indexer_sli(obj)[mask] = val
