@@ -801,12 +801,6 @@ class SetitemCastingEquivalents:
         obj = obj.copy()
         arr = obj._values
 
-        from pandas.core.dtypes.cast import find_result_type
-
-        # if obj.dtype != find_result_type(obj, val):
-        #     with pytest.raises(TypeError, match=None):
-        #         res = obj.where(~mask, val)
-        # else:
         res = obj.where(~mask, val)
         tm.assert_series_equal(res, expected)
 
