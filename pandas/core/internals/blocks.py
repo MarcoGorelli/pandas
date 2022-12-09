@@ -996,7 +996,10 @@ class Block(PandasObject):
 
                 if not is_list_like(new):
                     # using just new[indexer] can't save us the need to cast
-                    return self.coerce_to_target_dtype(new).putmask(mask, new)
+                    nb = self.coerce_to_target_dtype(new)
+                    if nb.dtype != self.dtype:
+                        raise TypeError("Can't upcast")
+                    return nb.putmask(mask, new)
                 else:
                     indexer = mask.nonzero()[0]
                     nb = self.setitem(indexer, new[indexer])
@@ -1507,12 +1510,16 @@ class EABackedBlock(Block):
                     # Discussion about what we want to support in the general
                     #  case GH#39584
                     blk = self.coerce_to_target_dtype(orig_new)
+                    if blk.dtype != self.dtype:
+                        raise
                     return blk.putmask(orig_mask, orig_new)
 
                 elif isinstance(self, NDArrayBackedExtensionBlock):
                     # NB: not (yet) the same as
                     #  isinstance(values, NDArrayBackedExtensionArray)
                     blk = self.coerce_to_target_dtype(orig_new)
+                    if blk.dtype != self.dtype:
+                        raise
                     return blk.putmask(orig_mask, orig_new)
 
                 else:
