@@ -786,17 +786,19 @@ class SetitemCastingEquivalents:
         from pandas.core.dtypes.cast import find_result_type
         from pandas._libs.tslibs.period import IncompatibleFrequency
 
-        breakpoint()
         if (
             obj.dtype != find_result_type(obj, val)
             and not (
-                hasattr(obj.dtype, 'tz')
-                and hasattr(val, 'tz')
+                getattr(obj.dtype, 'tz', None) is not None
+                and getattr(val, 'tz', None) is not None
                 and getattr(obj.dtype, 'tz') != getattr(val, 'tz')
             )
             and not (obj.dtype in [f'{u}int{d}' for u in ('', 'u') for d in (8, 16, 32, 64)] and isinstance(val, range))
-            and not (obj.dtype == 'int8' and val < 2**8)
-            and not (obj.dtype == 'float32' and val < 2**32)
+            and not (obj.dtype == 'int8' and isinstance(val, (float, int)) and val < 2**8)
+            and not (obj.dtype == 'float32' and isinstance(val, (float, int)) and val < 2**32)
+            and not (obj.dtype == 'int' and isinstance(val, np.ndarray) and not (val % 1).any())
+            and not (obj.dtype == 'int8' and hasattr(val, 'dtype') and val < 2**8)
+            and not (obj.dtype == 'float32' and hasattr(val, 'dtype') and val < 2**32)
         ):
             with pytest.raises((TypeError, IncompatibleFrequency, ValueError), match=None):
                 indexer_sli(obj)[mask] = val
