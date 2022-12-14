@@ -28,7 +28,6 @@ from pandas import (
     concat,
     date_range,
     interval_range,
-    isna,
     period_range,
     timedelta_range,
 )
@@ -375,13 +374,13 @@ class TestSetitemBooleanMask:
         mask = np.array([True, False, True])
 
         ser = orig.copy()
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match=None):
             ser[mask] = Series(alt)
         expected = Series([999, 2, 1001])
         # tm.assert_series_equal(ser, expected)
 
         ser2 = orig.copy()
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match=None):
             ser2.mask(mask, alt, inplace=True)
         # tm.assert_series_equal(ser2, expected)
 
@@ -662,7 +661,7 @@ class TestSetitemCasting:
         ser[:2] = arr[:2]  # no NAs -> can set inplace
         assert ser._values is values
 
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match=None):
             ser[1:] = arr[1:]  # has an NA -> cast to boolean dtype
         # expected = Series(arr)
         # tm.assert_series_equal(ser, expected)
@@ -717,36 +716,33 @@ class SetitemCastingEquivalents:
         if not isinstance(key, int):
             return
 
-        with pytest.raises(TypeError, match=None):
-            self.check_indexer(obj, key, expected, val, indexer_sli, is_inplace)
+        self.check_indexer(obj, key, expected, val, indexer_sli, is_inplace)
 
         if indexer_sli is tm.loc:
-            with pytest.raises(TypeError, match=None):
-                self.check_indexer(obj, key, expected, val, tm.at, is_inplace)
+            self.check_indexer(obj, key, expected, val, tm.at, is_inplace)
         elif indexer_sli is tm.iloc:
-            with pytest.raises(TypeError, match=None):
-                self.check_indexer(obj, key, expected, val, tm.iat, is_inplace)
+            self.check_indexer(obj, key, expected, val, tm.iat, is_inplace)
 
         rng = range(key, key + 1)
-        with pytest.raises(TypeError, match=None):
+        if val is not None:
             self.check_indexer(obj, rng, expected, val, indexer_sli, is_inplace)
 
         if indexer_sli is not tm.loc:
             # Note: no .loc because that handles slice edges differently
             slc = slice(key, key + 1)
-            with pytest.raises(TypeError, match=None):
+            if val is not None:
                 self.check_indexer(obj, slc, expected, val, indexer_sli, is_inplace)
 
         ilkey = [key]
-        with pytest.raises(TypeError, match=None):
+        if val is not None:
             self.check_indexer(obj, ilkey, expected, val, indexer_sli, is_inplace)
 
         indkey = np.array(ilkey)
-        with pytest.raises(TypeError, match=None):
+        if val is not None:
             self.check_indexer(obj, indkey, expected, val, indexer_sli, is_inplace)
 
         genkey = (x for x in [key])
-        with pytest.raises(TypeError, match=None):
+        if val is not None:
             self.check_indexer(obj, genkey, expected, val, indexer_sli, is_inplace)
 
     def test_slice_key(self, obj, key, expected, val, indexer_sli, is_inplace):
@@ -755,20 +751,16 @@ class SetitemCastingEquivalents:
 
         if indexer_sli is not tm.loc:
             # Note: no .loc because that handles slice edges differently
-            with pytest.raises(TypeError, match=None):
-                self.check_indexer(obj, key, expected, val, indexer_sli, is_inplace)
+            self.check_indexer(obj, key, expected, val, indexer_sli, is_inplace)
 
         ilkey = list(range(len(obj)))[key]
-        with pytest.raises(TypeError, match=None):
-            self.check_indexer(obj, ilkey, expected, val, indexer_sli, is_inplace)
+        self.check_indexer(obj, ilkey, expected, val, indexer_sli, is_inplace)
 
         indkey = np.array(ilkey)
-        with pytest.raises(TypeError, match=None):
-            self.check_indexer(obj, indkey, expected, val, indexer_sli, is_inplace)
+        self.check_indexer(obj, indkey, expected, val, indexer_sli, is_inplace)
 
         genkey = (x for x in indkey)
-        with pytest.raises(TypeError, match=None):
-            self.check_indexer(obj, genkey, expected, val, indexer_sli, is_inplace)
+        self.check_indexer(obj, genkey, expected, val, indexer_sli, is_inplace)
 
     def test_mask_key(self, obj, key, expected, val, indexer_sli):
         # setitem with boolean mask
@@ -783,24 +775,41 @@ class SetitemCastingEquivalents:
                 indexer_sli(obj)[mask] = val
             return
 
-        from pandas.core.dtypes.cast import find_result_type
         from pandas._libs.tslibs.period import IncompatibleFrequency
+
+        from pandas.core.dtypes.cast import find_result_type
 
         if (
             obj.dtype != find_result_type(obj, val)
             and not (
-                getattr(obj.dtype, 'tz', None) is not None
-                and getattr(val, 'tz', None) is not None
-                and getattr(obj.dtype, 'tz') != getattr(val, 'tz')
+                getattr(obj.dtype, "tz", None) is not None
+                and getattr(val, "tz", None) is not None
+                and getattr(obj.dtype, "tz") != getattr(val, "tz")
             )
-            and not (obj.dtype in [f'{u}int{d}' for u in ('', 'u') for d in (8, 16, 32, 64)] and isinstance(val, range))
-            and not (obj.dtype == 'int8' and isinstance(val, (float, int)) and val < 2**8)
-            and not (obj.dtype == 'float32' and isinstance(val, (float, int)) and val < 2**32)
-            and not (obj.dtype == 'int' and isinstance(val, np.ndarray) and not (val % 1).any())
-            and not (obj.dtype == 'int8' and hasattr(val, 'dtype') and val < 2**8)
-            and not (obj.dtype == 'float32' and hasattr(val, 'dtype') and val < 2**32)
+            and not (
+                obj.dtype in [f"{u}int{d}" for u in ("", "u") for d in (8, 16, 32, 64)]
+                and isinstance(val, range)
+            )
+            and not (
+                obj.dtype == "int8" and isinstance(val, (float, int)) and val < 2**8
+            )
+            and not (
+                obj.dtype == "float32"
+                and isinstance(val, (float, int))
+                and val < 2**32
+            )
+            and not (
+                obj.dtype == "int"
+                and isinstance(val, np.ndarray)
+                and val.dtype in ("float", "int")
+                and (val % 1).any()
+            )
+            and not (obj.dtype == "int8" and hasattr(val, "dtype") and val < 2**8)
+            and not (obj.dtype == "float32" and hasattr(val, "dtype") and val < 2**32)
         ):
-            with pytest.raises((TypeError, IncompatibleFrequency, ValueError), match=None):
+            with pytest.raises(
+                (TypeError, IncompatibleFrequency, ValueError), match=None
+            ):
                 indexer_sli(obj)[mask] = val
         else:
             indexer_sli(obj)[mask] = val
