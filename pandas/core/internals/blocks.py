@@ -988,10 +988,7 @@ class Block(PandasObject):
 
                 if not is_list_like(new):
                     # using just new[indexer] can't save us the need to cast
-                    nb = self.coerce_to_target_dtype(new)
-                    if nb.dtype != self.dtype:
-                        raise TypeError("Can't upcast")
-                    return nb.putmask(mask, new)
+                    raise
                 else:
                     indexer = mask.nonzero()[0]
                     nb = self.setitem(indexer, new[indexer])
