@@ -9,7 +9,10 @@ import numpy as np
 import pytest
 
 from pandas._libs.tslibs.period import IncompatibleFrequency
-from pandas.errors import IndexingError
+from pandas.errors import (
+    IndexingError,
+    LossySetitemError,
+)
 
 from pandas.core.dtypes.cast import find_result_type
 from pandas.core.dtypes.common import is_list_like
@@ -223,7 +226,7 @@ class TestSetitemScalarIndexer:
     def test_setitem_series_raises(self, index, exp_value):
         # GH#38303
         ser = Series([0, 0])
-        with pytest.raises(TypeError, match=None):
+        with pytest.raises(LossySetitemError, match=None):
             ser.loc[0] = Series([42], index=[index])
 
 
@@ -294,7 +297,7 @@ class TestSetitemBooleanMask:
         ser = Series([0, 1, 2, 0])
         mask = ser > 0
         ser2 = ser[mask].map(str)
-        with pytest.raises(TypeError, match="Incompatible types"):
+        with pytest.raises(LossySetitemError, match=None):
             ser[mask] = ser2
 
     def test_setitem_mask_promote(self):
@@ -384,7 +387,7 @@ class TestSetitemBooleanMask:
     def test_setitem_nan_with_bool(self):
         # GH 13034
         result = Series([True, False, True])
-        with pytest.raises(TypeError, match="Incompatible types"):
+        with pytest.raises(LossySetitemError, match=None):
             result[0] = np.nan
 
     def test_setitem_mask_smallint_upcast(self):
@@ -394,13 +397,13 @@ class TestSetitemBooleanMask:
         mask = np.array([True, False, True])
 
         ser = orig.copy()
-        with pytest.raises(TypeError, match=None):
+        with pytest.raises(LossySetitemError, match=None):
             ser[mask] = Series(alt)
         expected = Series([999, 2, 1001])
         # tm.assert_series_equal(ser, expected)
 
         ser2 = orig.copy()
-        with pytest.raises(TypeError, match=None):
+        with pytest.raises(LossySetitemError, match=None):
             ser2.mask(mask, alt, inplace=True)
         # tm.assert_series_equal(ser2, expected)
 
@@ -669,7 +672,7 @@ class TestSetitemCasting:
         if not unique:
             ser.index = [1, 1]
 
-        with pytest.raises(TypeError, match="Incompatible types"):
+        with pytest.raises(LossySetitemError, match=None):
             indexer_sli(ser)[1] = val
 
     def test_setitem_boolean_array_into_npbool(self):
@@ -681,7 +684,7 @@ class TestSetitemCasting:
         ser[:2] = arr[:2]  # no NAs -> can set inplace
         assert ser._values is values
 
-        with pytest.raises(TypeError, match=None):
+        with pytest.raises(LossySetitemError, match=None):
             ser[1:] = arr[1:]  # has an NA -> cast to boolean dtype
         # expected = Series(arr)
         # tm.assert_series_equal(ser, expected)
@@ -738,7 +741,8 @@ class SetitemCastingEquivalents:
 
         if should_raise(obj, val):
             context = pytest.raises(
-                (TypeError, IncompatibleFrequency, ValueError), match=None
+                (TypeError, IncompatibleFrequency, ValueError, LossySetitemError),
+                match=None,
             )
         else:
             context = nullcontext()
@@ -786,7 +790,8 @@ class SetitemCastingEquivalents:
 
         if should_raise(obj, val):
             context = pytest.raises(
-                (TypeError, IncompatibleFrequency, ValueError), match=None
+                (TypeError, IncompatibleFrequency, ValueError, LossySetitemError),
+                match=None,
             )
         else:
             context = nullcontext()
@@ -821,11 +826,10 @@ class SetitemCastingEquivalents:
                 indexer_sli(obj)[mask] = val
             return
 
-        from pandas._libs.tslibs.period import IncompatibleFrequency
-
         if should_raise(obj, val):
             with pytest.raises(
-                (TypeError, IncompatibleFrequency, ValueError), match=None
+                (TypeError, IncompatibleFrequency, ValueError, LossySetitemError),
+                match=None,
             ):
                 indexer_sli(obj)[mask] = val
         else:
@@ -1437,42 +1441,42 @@ def test_20643():
     expected = Series([0, 2.7, 2], index=["a", "b", "c"])
 
     ser = orig.copy()
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser.at["b"] = 2.7
 
     ser = orig.copy()
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser.loc["b"] = 2.7
 
     ser = orig.copy()
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser["b"] = 2.7
 
     ser = orig.copy()
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser.iat[1] = 2.7
 
     ser = orig.copy()
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser.iloc[1] = 2.7
 
     orig_df = orig.to_frame("A")
     expected_df = expected.to_frame("A")
 
     df = orig_df.copy()
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         df.at["b", "A"] = 2.7
 
     df = orig_df.copy()
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         df.loc["b", "A"] = 2.7
 
     df = orig_df.copy()
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         df.iloc[1, 0] = 2.7
 
     df = orig_df.copy()
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         df.iat[1, 0] = 2.7
 
 
@@ -1483,11 +1487,11 @@ def test_20643_comment():
     expected = Series([np.nan, 1, 2], index=["a", "b", "c"])
 
     ser = orig.copy()
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser.iat[0] = None
 
     ser = orig.copy()
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser.iloc[0] = None
 
 
@@ -1495,27 +1499,27 @@ def test_15413():
     # fixed by GH#45121
     ser = Series([1, 2, 3])
 
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser[ser == 2] += 0.5
 
     ser = Series([1, 2, 3])
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser[1] += 0.5
 
     ser = Series([1, 2, 3])
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser.loc[1] += 0.5
 
     ser = Series([1, 2, 3])
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser.iloc[1] += 0.5
 
     ser = Series([1, 2, 3])
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser.iat[1] += 0.5
 
     ser = Series([1, 2, 3])
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser.at[1] += 0.5
 
 
@@ -1524,7 +1528,7 @@ def test_32878_int_itemsize():
     arr = np.arange(5).astype("i4")
     ser = Series(arr)
     val = np.int64(np.iinfo(np.int64).max)
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser[0] = val
 
 
@@ -1535,14 +1539,14 @@ def test_32878_complex_itemsize():
     val = val.astype("c16")
 
     # GH#32878 used to coerce val to inf+0.000000e+00j
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser[0] = val
 
 
 def test_37692(indexer_al):
     # GH#37692
     ser = Series([1, 2, 3], index=["a", "b", "c"])
-    with pytest.raises(TypeError, match="Incompatible types"):
+    with pytest.raises(LossySetitemError, match=None):
         indexer_al(ser)["b"] = "test"
 
 
@@ -1553,11 +1557,11 @@ def test_setitem_bool_int_float_consistency(indexer_sli):
     #  as the setitem can be done losslessly
     for dtype in [np.float64, np.int64]:
         ser = Series(0, index=range(3), dtype=dtype)
-        with pytest.raises(TypeError, match="Incompatible types"):
+        with pytest.raises(LossySetitemError, match=None):
             indexer_sli(ser)[0] = True
 
         ser = Series(0, index=range(3), dtype=bool)
-        with pytest.raises(TypeError, match="Incompatible types"):
+        with pytest.raises(LossySetitemError, match=None):
             ser[0] = dtype(1)
 
     # 1.0 can be held losslessly, so no casting
@@ -1584,7 +1588,7 @@ def test_setitem_positional_float_into_int_coerces():
     # Case where we hit a KeyError and then trying to set in-place incorrectly
     #  casts a float to an int
     ser = Series([1, 2, 3], index=["a", "b", "c"])
-    with pytest.raises(TypeError, match=None):
+    with pytest.raises(LossySetitemError, match=None):
         ser[0] = 1.5
 
 
