@@ -3,6 +3,7 @@ from datetime import datetime
 import numpy as np
 import pytest
 
+from pandas.errors import LossySetitemError
 import pandas.util._test_decorators as td
 
 from pandas.core.dtypes.base import _registry as ea_registry
@@ -984,10 +985,8 @@ class TestDataFrameSetItemCallable:
             return x + 1
 
         df = DataFrame([[-1, 1], [1, -1]])
-        df[df > 0] = inc
-
-        expected = DataFrame([[-1, inc], [inc, -1]])
-        tm.assert_frame_equal(df, expected)
+        with pytest.raises(LossySetitemError, match=None):
+            df[df > 0] = inc
 
 
 class TestDataFrameSetItemBooleanMask:
