@@ -1,4 +1,5 @@
 # flake8: noqa: E501
+from contextlib import nullcontext
 from datetime import (
     date,
     datetime,
@@ -735,8 +736,6 @@ class SetitemCastingEquivalents:
         if not isinstance(key, int):
             return
 
-        from contextlib import nullcontext
-
         if should_raise(obj, val):
             context = pytest.raises(
                 (TypeError, IncompatibleFrequency, ValueError), match=None
@@ -785,18 +784,29 @@ class SetitemCastingEquivalents:
         if not isinstance(key, slice):
             return
 
+        if should_raise(obj, val):
+            context = pytest.raises(
+                (TypeError, IncompatibleFrequency, ValueError), match=None
+            )
+        else:
+            context = nullcontext()
+
         if indexer_sli is not tm.loc:
             # Note: no .loc because that handles slice edges differently
-            self.check_indexer(obj, key, expected, val, indexer_sli, is_inplace)
+            with context:
+                self.check_indexer(obj, key, expected, val, indexer_sli, is_inplace)
 
         ilkey = list(range(len(obj)))[key]
-        self.check_indexer(obj, ilkey, expected, val, indexer_sli, is_inplace)
+        with context:
+            self.check_indexer(obj, ilkey, expected, val, indexer_sli, is_inplace)
 
         indkey = np.array(ilkey)
-        self.check_indexer(obj, indkey, expected, val, indexer_sli, is_inplace)
+        with context:
+            self.check_indexer(obj, indkey, expected, val, indexer_sli, is_inplace)
 
         genkey = (x for x in indkey)
-        self.check_indexer(obj, genkey, expected, val, indexer_sli, is_inplace)
+        with context:
+            self.check_indexer(obj, genkey, expected, val, indexer_sli, is_inplace)
 
     def test_mask_key(self, obj, key, expected, val, indexer_sli):
         # setitem with boolean mask
@@ -1130,8 +1140,8 @@ class TestSetitemFloatIntervalWithIntIntervalValues(SetitemCastingEquivalents):
         obj = Series(idx)
         val = Interval(0.5, 1.5)
 
-        obj[0] = val
-        assert obj.dtype == "Interval[float64, right]"
+        with pytest.raises(TypeError, match=None):
+            obj[0] = val
 
     @pytest.fixture
     def obj(self):
@@ -1427,43 +1437,43 @@ def test_20643():
     expected = Series([0, 2.7, 2], index=["a", "b", "c"])
 
     ser = orig.copy()
-    ser.at["b"] = 2.7
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser.at["b"] = 2.7
 
     ser = orig.copy()
-    ser.loc["b"] = 2.7
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser.loc["b"] = 2.7
 
     ser = orig.copy()
-    ser["b"] = 2.7
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser["b"] = 2.7
 
     ser = orig.copy()
-    ser.iat[1] = 2.7
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser.iat[1] = 2.7
 
     ser = orig.copy()
-    ser.iloc[1] = 2.7
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser.iloc[1] = 2.7
 
     orig_df = orig.to_frame("A")
     expected_df = expected.to_frame("A")
 
     df = orig_df.copy()
-    df.at["b", "A"] = 2.7
-    tm.assert_frame_equal(df, expected_df)
+    with pytest.raises(TypeError, match=None):
+        df.at["b", "A"] = 2.7
 
     df = orig_df.copy()
-    df.loc["b", "A"] = 2.7
-    tm.assert_frame_equal(df, expected_df)
+    with pytest.raises(TypeError, match=None):
+        df.loc["b", "A"] = 2.7
 
     df = orig_df.copy()
-    df.iloc[1, 0] = 2.7
-    tm.assert_frame_equal(df, expected_df)
+    with pytest.raises(TypeError, match=None):
+        df.iloc[1, 0] = 2.7
 
     df = orig_df.copy()
-    df.iat[1, 0] = 2.7
-    tm.assert_frame_equal(df, expected_df)
+    with pytest.raises(TypeError, match=None):
+        df.iat[1, 0] = 2.7
 
 
 def test_20643_comment():
@@ -1473,41 +1483,40 @@ def test_20643_comment():
     expected = Series([np.nan, 1, 2], index=["a", "b", "c"])
 
     ser = orig.copy()
-    ser.iat[0] = None
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser.iat[0] = None
 
     ser = orig.copy()
-    ser.iloc[0] = None
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser.iloc[0] = None
 
 
 def test_15413():
     # fixed by GH#45121
     ser = Series([1, 2, 3])
 
-    ser[ser == 2] += 0.5
-    expected = Series([1, 2.5, 3])
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser[ser == 2] += 0.5
 
     ser = Series([1, 2, 3])
-    ser[1] += 0.5
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser[1] += 0.5
 
     ser = Series([1, 2, 3])
-    ser.loc[1] += 0.5
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser.loc[1] += 0.5
 
     ser = Series([1, 2, 3])
-    ser.iloc[1] += 0.5
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser.iloc[1] += 0.5
 
     ser = Series([1, 2, 3])
-    ser.iat[1] += 0.5
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser.iat[1] += 0.5
 
     ser = Series([1, 2, 3])
-    ser.at[1] += 0.5
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser.at[1] += 0.5
 
 
 def test_32878_int_itemsize():
@@ -1515,9 +1524,8 @@ def test_32878_int_itemsize():
     arr = np.arange(5).astype("i4")
     ser = Series(arr)
     val = np.int64(np.iinfo(np.int64).max)
-    ser[0] = val
-    expected = Series([val, 1, 2, 3, 4], dtype=np.int64)
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser[0] = val
 
 
 def test_32878_complex_itemsize():
@@ -1527,16 +1535,14 @@ def test_32878_complex_itemsize():
     val = val.astype("c16")
 
     # GH#32878 used to coerce val to inf+0.000000e+00j
-    ser[0] = val
-    assert ser[0] == val
-    expected = Series([val, 1, 2, 3, 4], dtype="c16")
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser[0] = val
 
 
 def test_37692(indexer_al):
     # GH#37692
     ser = Series([1, 2, 3], index=["a", "b", "c"])
-    with pytest.raises(TypeError, match="Can't upcast to object"):
+    with pytest.raises(TypeError, match="Incompatible types"):
         indexer_al(ser)["b"] = "test"
 
 
@@ -1547,11 +1553,11 @@ def test_setitem_bool_int_float_consistency(indexer_sli):
     #  as the setitem can be done losslessly
     for dtype in [np.float64, np.int64]:
         ser = Series(0, index=range(3), dtype=dtype)
-        with pytest.raises(TypeError, match="Can't upcast to object"):
+        with pytest.raises(TypeError, match="Incompatible types"):
             indexer_sli(ser)[0] = True
 
         ser = Series(0, index=range(3), dtype=bool)
-        with pytest.raises(TypeError, match="Can't upcast to object"):
+        with pytest.raises(TypeError, match="Incompatible types"):
             ser[0] = dtype(1)
 
     # 1.0 can be held losslessly, so no casting
@@ -1578,9 +1584,8 @@ def test_setitem_positional_float_into_int_coerces():
     # Case where we hit a KeyError and then trying to set in-place incorrectly
     #  casts a float to an int
     ser = Series([1, 2, 3], index=["a", "b", "c"])
-    ser[0] = 1.5
-    expected = Series([1.5, 2, 3], index=["a", "b", "c"])
-    tm.assert_series_equal(ser, expected)
+    with pytest.raises(TypeError, match=None):
+        ser[0] = 1.5
 
 
 def test_setitem_int_not_positional():
