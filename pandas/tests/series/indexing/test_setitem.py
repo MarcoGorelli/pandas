@@ -7,6 +7,7 @@ from datetime import (
 import numpy as np
 import pytest
 
+from pandas._libs.tslibs.period import IncompatibleFrequency
 from pandas.errors import IndexingError
 
 from pandas.core.dtypes.cast import find_result_type
@@ -736,10 +737,12 @@ class SetitemCastingEquivalents:
 
         from contextlib import nullcontext
 
-        if obj.dtype == find_result_type(obj, val):
-            context = nullcontext()
+        if should_raise(obj, val):
+            context = pytest.raises(
+                (TypeError, IncompatibleFrequency, ValueError), match=None
+            )
         else:
-            context = pytest.raises(TypeError, match=None)
+            context = nullcontext()
 
         with context:
             self.check_indexer(obj, key, expected, val, indexer_sli, is_inplace)
