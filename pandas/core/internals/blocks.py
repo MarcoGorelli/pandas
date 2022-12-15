@@ -1367,9 +1367,6 @@ class EABackedBlock(Block):
         `indexer` is a direct slice/positional indexer. `value` must
         be a compatible shape.
         """
-        orig_indexer = indexer
-        orig_value = value
-
         indexer = self._unwrap_setitem_indexer(indexer)
         value = self._maybe_squeeze_arg(value)
 
@@ -1380,29 +1377,8 @@ class EABackedBlock(Block):
             values = values.T
         check_setitem_lengths(indexer, value, values)
 
-        try:
-            values[indexer] = value
-        except (ValueError, TypeError) as err:
-            _catch_deprecated_value_error(err)
-
-            if is_interval_dtype(self.dtype):
-                # see TestSetitemFloatIntervalWithIntIntervalValues
-                nb = self.coerce_to_target_dtype(orig_value)
-                if nb.dtype != self.dtype:
-                    raise err
-                return nb.setitem(orig_indexer, orig_value)
-
-            elif isinstance(self, NDArrayBackedExtensionBlock):
-                nb = self.coerce_to_target_dtype(orig_value)
-                if nb.dtype != self.dtype:
-                    raise err
-                return nb.setitem(orig_indexer, orig_value)
-
-            else:
-                raise
-
-        else:
-            return self
+        values[indexer] = value
+        return self
 
     def where(self, other, cond, _downcast: str | bool = "infer") -> list[Block]:
         # _downcast private bc we only specify it when calling from fillna
@@ -1494,25 +1470,7 @@ class EABackedBlock(Block):
             _catch_deprecated_value_error(err)
 
             if self.ndim == 1 or self.shape[0] == 1:
-
-                if is_interval_dtype(self.dtype):
-                    # Discussion about what we want to support in the general
-                    #  case GH#39584
-                    blk = self.coerce_to_target_dtype(orig_new)
-                    if blk.dtype != self.dtype:
-                        raise
-                    return blk.putmask(orig_mask, orig_new)
-
-                elif isinstance(self, NDArrayBackedExtensionBlock):
-                    # NB: not (yet) the same as
-                    #  isinstance(values, NDArrayBackedExtensionArray)
-                    blk = self.coerce_to_target_dtype(orig_new)
-                    if blk.dtype != self.dtype:
-                        raise
-                    return blk.putmask(orig_mask, orig_new)
-
-                else:
-                    raise
+                raise
 
             else:
                 # Same pattern we use in Block.putmask
