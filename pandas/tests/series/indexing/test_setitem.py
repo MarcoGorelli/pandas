@@ -1,3 +1,4 @@
+# flake8: noqa: E501
 from datetime import (
     date,
     datetime,
@@ -8,6 +9,7 @@ import pytest
 
 from pandas.errors import IndexingError
 
+from pandas.core.dtypes.cast import find_result_type
 from pandas.core.dtypes.common import is_list_like
 
 from pandas import (
@@ -34,6 +36,22 @@ from pandas import (
 import pandas._testing as tm
 
 from pandas.tseries.offsets import BDay
+
+
+def should_raise(obj, val):
+    # fmt: off
+    return (
+        obj.dtype != find_result_type(obj, val)
+        and not (getattr(obj.dtype, "tz", None) is not None and getattr(val, "tz", None) is not None and getattr(obj.dtype, "tz") != getattr(val, "tz"))
+        and not (obj.dtype in [f"{u}int{d}" for u in ("", "u") for d in (8, 16, 32, 64)] and isinstance(val, range))
+        and not (obj.dtype == "int8" and isinstance(val, (float, int)) and val < 2**8)
+        and not (obj.dtype == "float32" and isinstance(val, (float, int)) and val < 2**31 and not isinstance(val, bool))
+        and not (obj.dtype == "int8" and hasattr(val, "dtype") and val < 2**7)
+        and not (obj.dtype == "float32" and hasattr(val, "dtype") and val < 2**31)
+        and not (obj.dtype == 'int64' and hasattr(val, 'dtype') and val.dtype == 'int' and isinstance(val, np.ndarray) and (val < 2**63).all())
+        and not (obj.dtype == 'int64' and hasattr(val, 'dtype') and val.dtype == 'float' and isinstance(val, np.ndarray) and (val < 2**63).all() and not (val % 1).any())
+    )
+    # fmt: on
 
 
 class TestSetitemDT64Values:
@@ -716,34 +734,49 @@ class SetitemCastingEquivalents:
         if not isinstance(key, int):
             return
 
-        self.check_indexer(obj, key, expected, val, indexer_sli, is_inplace)
+        from contextlib import nullcontext
+
+        if obj.dtype == find_result_type(obj, val):
+            context = nullcontext()
+        else:
+            context = pytest.raises(TypeError, match=None)
+
+        with context:
+            self.check_indexer(obj, key, expected, val, indexer_sli, is_inplace)
 
         if indexer_sli is tm.loc:
-            self.check_indexer(obj, key, expected, val, tm.at, is_inplace)
+            with context:
+                self.check_indexer(obj, key, expected, val, tm.at, is_inplace)
         elif indexer_sli is tm.iloc:
-            self.check_indexer(obj, key, expected, val, tm.iat, is_inplace)
+            with context:
+                self.check_indexer(obj, key, expected, val, tm.iat, is_inplace)
 
         rng = range(key, key + 1)
         if val is not None:
-            self.check_indexer(obj, rng, expected, val, indexer_sli, is_inplace)
+            with context:
+                self.check_indexer(obj, rng, expected, val, indexer_sli, is_inplace)
 
         if indexer_sli is not tm.loc:
             # Note: no .loc because that handles slice edges differently
             slc = slice(key, key + 1)
             if val is not None:
-                self.check_indexer(obj, slc, expected, val, indexer_sli, is_inplace)
+                with context:
+                    self.check_indexer(obj, slc, expected, val, indexer_sli, is_inplace)
 
         ilkey = [key]
         if val is not None:
-            self.check_indexer(obj, ilkey, expected, val, indexer_sli, is_inplace)
+            with context:
+                self.check_indexer(obj, ilkey, expected, val, indexer_sli, is_inplace)
 
         indkey = np.array(ilkey)
         if val is not None:
-            self.check_indexer(obj, indkey, expected, val, indexer_sli, is_inplace)
+            with context:
+                self.check_indexer(obj, indkey, expected, val, indexer_sli, is_inplace)
 
         genkey = (x for x in [key])
         if val is not None:
-            self.check_indexer(obj, genkey, expected, val, indexer_sli, is_inplace)
+            with context:
+                self.check_indexer(obj, genkey, expected, val, indexer_sli, is_inplace)
 
     def test_slice_key(self, obj, key, expected, val, indexer_sli, is_inplace):
         if not isinstance(key, slice):
@@ -777,36 +810,7 @@ class SetitemCastingEquivalents:
 
         from pandas._libs.tslibs.period import IncompatibleFrequency
 
-        from pandas.core.dtypes.cast import find_result_type
-
-        if (
-            obj.dtype != find_result_type(obj, val)
-            and not (
-                getattr(obj.dtype, "tz", None) is not None
-                and getattr(val, "tz", None) is not None
-                and getattr(obj.dtype, "tz") != getattr(val, "tz")
-            )
-            and not (
-                obj.dtype in [f"{u}int{d}" for u in ("", "u") for d in (8, 16, 32, 64)]
-                and isinstance(val, range)
-            )
-            and not (
-                obj.dtype == "int8" and isinstance(val, (float, int)) and val < 2**8
-            )
-            and not (
-                obj.dtype == "float32"
-                and isinstance(val, (float, int))
-                and val < 2**32
-            )
-            and not (
-                obj.dtype == "int"
-                and isinstance(val, np.ndarray)
-                and val.dtype in ("float", "int")
-                and (val % 1).any()
-            )
-            and not (obj.dtype == "int8" and hasattr(val, "dtype") and val < 2**8)
-            and not (obj.dtype == "float32" and hasattr(val, "dtype") and val < 2**32)
-        ):
+        if should_raise(obj, val):
             with pytest.raises(
                 (TypeError, IncompatibleFrequency, ValueError), match=None
             ):
