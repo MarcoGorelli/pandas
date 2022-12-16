@@ -191,6 +191,8 @@ class TestDataFrameIndexingWhere:
                 df > 0
             return
 
+        df = df.astype(float)
+
         cond = df > 0
         _check_set(df, cond)
 
@@ -336,7 +338,7 @@ class TestDataFrameIndexingWhere:
         result = df.where(df > 2, np.nan)
         tm.assert_frame_equal(result, expected)
 
-        result = df.copy()
+        result = df.copy().astype(float)
         return_value = result.where(result > 2, np.nan, inplace=True)
         assert return_value is None
         tm.assert_frame_equal(result, expected)
@@ -492,7 +494,7 @@ class TestDataFrameIndexingWhere:
         result = df.where(mask, ser, axis="index")
         tm.assert_frame_equal(result, expected)
 
-        result = df.copy()
+        result = df.copy().astype(float)
         return_value = result.where(mask, ser, axis="index", inplace=True)
         assert return_value is None
         tm.assert_frame_equal(result, expected)
@@ -507,7 +509,7 @@ class TestDataFrameIndexingWhere:
                 1: np.array([np.nan, np.nan], dtype="float64"),
             }
         )
-        result = df.copy()
+        result = df.copy().astype({1: float})
         return_value = result.where(mask, ser, axis="columns", inplace=True)
         assert return_value is None
         tm.assert_frame_equal(result, expected)
@@ -550,18 +552,18 @@ class TestDataFrameIndexingWhere:
 
         # DataFrame vs DataFrame
         d1 = df.copy().drop(1, axis=0)
-        expected = df.copy()
+        expected = df.copy().astype(float)
         expected.loc[1, :] = np.nan
 
         result = df.where(mask, d1)
         tm.assert_frame_equal(result, expected)
         result = df.where(mask, d1, axis="index")
         tm.assert_frame_equal(result, expected)
-        result = df.copy()
+        result = df.copy().astype(float)
         return_value = result.where(mask, d1, inplace=True)
         assert return_value is None
         tm.assert_frame_equal(result, expected)
-        result = df.copy()
+        result = df.copy().astype(float)
         return_value = result.where(mask, d1, inplace=True, axis="index")
         assert return_value is None
         tm.assert_frame_equal(result, expected)
@@ -669,7 +671,7 @@ class TestDataFrameIndexingWhere:
         df["b"] = df["b"].astype("category")
 
         result = df.where(df["a"] > 0)
-        expected = df.copy()
+        expected = df.copy().astype({"a": float})
         expected.loc[0, :] = np.nan
 
         tm.assert_equal(result, expected)
@@ -714,6 +716,7 @@ class TestDataFrameIndexingWhere:
         tm.assert_equal(res, other.astype(np.int64))
 
         # unlike where, Block.putmask does not downcast
+        obj = obj.astype(object)
         obj.mask(obj.notna(), other, inplace=True)
         tm.assert_equal(obj, other.astype(object))
 
@@ -754,6 +757,7 @@ class TestDataFrameIndexingWhere:
         tm.assert_frame_equal(res5, expected)
 
         # unlike where, Block.putmask does not downcast
+        df = df.astype(object)
         df.mask(~mask2, 4, inplace=True)
         tm.assert_frame_equal(df, expected.astype(object))
 
@@ -909,6 +913,7 @@ def test_where_period_invalid_na(frame_or_series, as_cat, request):
         result = obj.mask(mask, tdnat)
         tm.assert_equal(result, expected)
 
+        obj = obj.astype(object)
         obj.mask(mask, tdnat, inplace=True)
         tm.assert_equal(obj, expected)
 
@@ -965,11 +970,12 @@ def _check_where_equivalences(df, mask, other, expected):
     #  Block.putmask does *not* downcast.  The change to 'expected' here
     #  is specific to the cases in test_where_dt64_2d.
     df = df.copy()
-    df.mask(~mask, other, inplace=True)
     if not mask.all():
         # with mask.all(), Block.putmask is a no-op, so does not downcast
         expected = expected.copy()
         expected["A"] = expected["A"].astype(object)
+        df["A"] = df["A"].astype(object)
+    df.mask(~mask, other, inplace=True)
     tm.assert_frame_equal(df, expected)
 
 
@@ -985,7 +991,9 @@ def test_where_dt64_2d():
 
     # setting all of one column, none of the other
     expected = DataFrame({"A": other[:, 0], "B": dta[:, 1]})
-    _check_where_equivalences(df, mask, other, expected)
+    # TODO: not the best way to do this
+    with pytest.raises(TypeError, match=None):
+        _check_where_equivalences(df, mask, other, expected)
 
     # setting part of one column, none of the other
     mask[1, 0] = True
@@ -995,7 +1003,8 @@ def test_where_dt64_2d():
             "B": dta[:, 1],
         }
     )
-    _check_where_equivalences(df, mask, other, expected)
+    with pytest.raises(TypeError, match=None):  # TODO: more focused?
+        _check_where_equivalences(df, mask, other, expected)
 
     # setting nothing in either column
     mask[:] = True
