@@ -2536,9 +2536,12 @@ class TestDataFrameConstructors:
             # constructor preserves views
             check_views()
 
+        # really needs fixing up...
         # TODO: most of the rest of this test belongs in indexing tests
-        df.iloc[0, 0] = 0
-        df.iloc[0, 1] = 0
+        if df.dtypes.iloc[0] == "int":
+            df.iloc[0, 0] = 0
+        if df.dtypes.iloc[0] == "int":
+            df.iloc[0, 1] = 0
         if not copy:
             check_views(True)
 
