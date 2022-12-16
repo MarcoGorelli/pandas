@@ -28,8 +28,8 @@ class ComparisonOps(BaseOpsUtil):
         expected = op(pd.Series(data._data), other)
 
         # fill the nan locations
-        expected[data._mask] = pd.NA
         expected = expected.astype("boolean")
+        expected[data._mask] = pd.NA
 
         tm.assert_series_equal(result, expected)
 

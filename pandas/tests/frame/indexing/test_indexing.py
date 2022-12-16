@@ -320,12 +320,12 @@ class TestDataFrameIndexing:
 
     def test_setitem2(self):
         # dtype changing GH4204
-        df = DataFrame([[0, 0]])
+        df = DataFrame([[0, 0]], dtype="float64")
         df.iloc[0] = np.nan
         expected = DataFrame([[np.nan, np.nan]])
         tm.assert_frame_equal(df, expected)
 
-        df = DataFrame([[0, 0]])
+        df = DataFrame([[0, 0]], dtype="float64")
         df.loc[0] = np.nan
         tm.assert_frame_equal(df, expected)
 
@@ -809,6 +809,7 @@ class TestDataFrameIndexing:
         tm.assert_series_equal(result, expected)
 
         # GH#16674 iNaT is treated as an integer when given by the user
+        df["timestamp"] = df["timestamp"].astype(object)
         df.loc["b", "timestamp"] = iNaT
         assert not isna(df.loc["b", "timestamp"])
         assert df["timestamp"].dtype == np.object_
@@ -837,8 +838,9 @@ class TestDataFrameIndexing:
                 ],
             }
         )
-        df = DataFrame(0, columns=list("ab"), index=range(6))
+        df = DataFrame(0, columns=list("ab"), index=range(6)).astype({"b": object})
         df["b"] = pd.NaT
+        df["b"] = df["b"].astype(object)
         df.loc[0, "b"] = datetime(2012, 1, 1)
         df.loc[1, "b"] = 1
         df.loc[[2, 3], "b"] = "x", "y"
@@ -1322,7 +1324,7 @@ class TestDataFrameIndexing:
     @pytest.mark.parametrize("idxr", ["a", ["a"]])
     def test_loc_setitem_rhs_frame(self, idxr, val):
         # GH#47578
-        df = DataFrame({"a": [1, 2]})
+        df = DataFrame({"a": [1, 2]}, dtype="float")
         with tm.assert_produces_warning(None):
             df.loc[:, idxr] = DataFrame({"a": [val, 11]}, index=[1, 2])
         expected = DataFrame({"a": [np.nan, val]})
@@ -1514,7 +1516,7 @@ class TestDataFrameIndexingUInt64:
 
         # With NaN: because uint64 has no NaN element,
         # the column should be cast to object.
-        df2 = df.copy()
+        df2 = df.copy().astype({"B": object, "C": object})
         df2.iloc[1, 1] = pd.NaT
         df2.iloc[1, 2] = pd.NaT
         result = df2["B"]

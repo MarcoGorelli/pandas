@@ -602,7 +602,7 @@ def test_applymap_na_ignore(float_frame):
     strlen_frame_na_ignore = float_frame_with_na.applymap(
         lambda x: len(str(x)), na_action="ignore"
     )
-    strlen_frame_with_na = strlen_frame.copy()
+    strlen_frame_with_na = strlen_frame.copy().astype("float64")
     strlen_frame_with_na[mask] = pd.NA
     tm.assert_frame_equal(strlen_frame_na_ignore, strlen_frame_with_na)
 
