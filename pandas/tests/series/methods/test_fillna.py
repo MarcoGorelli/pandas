@@ -163,7 +163,7 @@ class TestSeriesFillNA:
         tm.assert_series_equal(result, expected)
 
         # assignment
-        ser2 = ser.copy()
+        ser2 = ser.copy().astype(object)
         ser2[1] = "foo"
         tm.assert_series_equal(ser2, expected)
 

@@ -63,7 +63,7 @@ class TestSeriesAsof:
 
         N = 30
         rng = date_range("1/1/1990", periods=N, freq="53s")
-        ts = Series(np.arange(N), index=rng)
+        ts = Series(np.arange(N), index=rng, dtype=float)
         ts.iloc[5:10] = np.NaN
         ts.iloc[15:20] = np.NaN
 
