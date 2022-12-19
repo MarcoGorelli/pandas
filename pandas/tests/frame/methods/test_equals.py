@@ -31,12 +31,14 @@ class TestEquals:
     def test_equals(self):
         # Add object dtype column with nans
         index = np.random.random(10)
-        df1 = DataFrame(np.random.random(10), index=index, columns=["floats"])
+        df1 = DataFrame(
+            np.random.random(10), index=index, columns=["floats"], dtype=float
+        )
         df1["text"] = "the sky is so blue. we could use more chocolate.".split()
         df1["start"] = date_range("2000-1-1", periods=10, freq="T")
         df1["end"] = date_range("2000-1-1", periods=10, freq="D")
         df1["diff"] = df1["end"] - df1["start"]
-        df1["bool"] = np.arange(10) % 3 == 0
+        df1["bool"] = (np.arange(10) % 3 == 0).astype(float)
         df1.loc[::2] = np.nan
         df2 = df1.copy()
         assert df1["text"].equals(df2["text"])

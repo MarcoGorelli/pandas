@@ -8,11 +8,9 @@ import weakref
 import numpy as np
 import pytest
 
-from pandas.errors import IndexingError
-
-from pandas.core.dtypes.common import (
-    is_float_dtype,
-    is_integer_dtype,
+from pandas.errors import (
+    IndexingError,
+    LossySetitemError,
 )
 
 import pandas as pd
@@ -178,11 +176,8 @@ class TestFancy:
         df["c"] = np.nan
         assert df["c"].dtype == np.float64
 
-        df.loc[0, "c"] = "foo"
-        expected = DataFrame(
-            [{"a": 1, "b": np.nan, "c": "foo"}, {"a": 3, "b": 2, "c": np.nan}]
-        )
-        tm.assert_frame_equal(df, expected)
+        with pytest.raises(LossySetitemError, match=None):
+            df.loc[0, "c"] = "foo"
 
     @pytest.mark.parametrize("val", [3.14, "wxyz"])
     def test_setitem_dtype_upcast2(self, val):
@@ -195,16 +190,8 @@ class TestFancy:
         )
 
         left = df.copy()
-        left.loc["a", "bar"] = val
-        right = DataFrame(
-            [[0, val, 2], [3, 4, 5]],
-            index=list("ab"),
-            columns=["foo", "bar", "baz"],
-        )
-
-        tm.assert_frame_equal(left, right)
-        assert is_integer_dtype(left["foo"])
-        assert is_integer_dtype(left["baz"])
+        with pytest.raises(LossySetitemError, match=None):
+            left.loc["a", "bar"] = val
 
     def test_setitem_dtype_upcast3(self):
         left = DataFrame(
@@ -212,17 +199,8 @@ class TestFancy:
             index=list("ab"),
             columns=["foo", "bar", "baz"],
         )
-        left.loc["a", "bar"] = "wxyz"
-
-        right = DataFrame(
-            [[0, "wxyz", 0.2], [0.3, 0.4, 0.5]],
-            index=list("ab"),
-            columns=["foo", "bar", "baz"],
-        )
-
-        tm.assert_frame_equal(left, right)
-        assert is_float_dtype(left["foo"])
-        assert is_float_dtype(left["baz"])
+        with pytest.raises(LossySetitemError, match=None):
+            left.loc["a", "bar"] = "wxyz"
 
     def test_dups_fancy_indexing(self):
 
@@ -448,7 +426,7 @@ class TestFancy:
                 "col1": list(range(6)),
                 "col2": list(range(6, 12)),
             }
-        )
+        ).astype({"col2": float})
         df.iloc[1, 0] = np.nan
         df2 = df.copy()
 
@@ -673,10 +651,16 @@ class TestMisc:
             tm.assert_frame_equal(left, right_loc)
 
             left = df.copy()
+            if left["joe"].dtype == "float":
+                # TODO why?
+                left = left.astype({"joe": object})
             left.iloc[idx_one, idx_two] = rhs
             tm.assert_frame_equal(left, right_iloc)
 
             left = df.copy()
+            if left["joe"].dtype == "float":
+                # TODO why?
+                left = left.astype({"joe": object})
             left.iloc[slice_one, slice_two] = rhs
             tm.assert_frame_equal(left, right_iloc)
 
@@ -813,6 +797,8 @@ class TestDataframeNoneCoercion:
         start_data, expected_result = expected
 
         start_dataframe = DataFrame({"foo": start_data})
+        if start_dataframe.dtypes["foo"] == "int":
+            start_dataframe = start_dataframe.astype({"foo": float})
         start_dataframe.loc[0, ["foo"]] = None
 
         expected_dataframe = DataFrame({"foo": expected_result})
@@ -823,6 +809,8 @@ class TestDataframeNoneCoercion:
         start_data, expected_result = expected
 
         start_dataframe = DataFrame({"foo": start_data})
+        if start_dataframe.dtypes["foo"] == "int":
+            start_dataframe = start_dataframe.astype({"foo": float})
         start_dataframe[start_dataframe["foo"] == start_dataframe["foo"][0]] = None
 
         expected_dataframe = DataFrame({"foo": expected_result})
@@ -833,6 +821,8 @@ class TestDataframeNoneCoercion:
         start_data, expected_result = expected
 
         start_dataframe = DataFrame({"foo": start_data})
+        if start_dataframe.dtypes["foo"] == "int":
+            start_dataframe = start_dataframe.astype({"foo": float})
         start_dataframe.loc[start_dataframe["foo"] == start_dataframe["foo"][0]] = None
 
         expected_dataframe = DataFrame({"foo": expected_result})
@@ -841,7 +831,7 @@ class TestDataframeNoneCoercion:
     def test_none_coercion_mixed_dtypes(self):
         start_dataframe = DataFrame(
             {
-                "a": [1, 2, 3],
+                "a": [1.0, 2.0, 3.0],
                 "b": [1.0, 2.0, 3.0],
                 "c": [datetime(2000, 1, 1), datetime(2000, 1, 2), datetime(2000, 1, 3)],
                 "d": ["a", "b", "c"],

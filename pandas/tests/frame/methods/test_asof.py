@@ -29,7 +29,7 @@ def date_range_frame():
 
 class TestFrameAsof:
     def test_basic(self, date_range_frame):
-        df = date_range_frame
+        df = date_range_frame.astype({"A": float})
         N = 50
         df.loc[df.index[15:30], "A"] = np.nan
         dates = date_range("1/1/1990", periods=N * 3, freq="25s")
@@ -50,7 +50,7 @@ class TestFrameAsof:
 
     def test_subset(self, date_range_frame):
         N = 10
-        df = date_range_frame.iloc[:N].copy()
+        df = date_range_frame.iloc[:N].copy().astype({"A": float})
         df.loc[df.index[4:8], "A"] = np.nan
         dates = date_range("1/1/1990", periods=N * 3, freq="25s")
 
@@ -86,7 +86,7 @@ class TestFrameAsof:
         )
         tm.assert_series_equal(result, expected)
 
-        result = df.asof(to_datetime(["1989-12-31"]))
+        result = df.astype(float).asof(to_datetime(["1989-12-31"]))
         expected = DataFrame(
             index=to_datetime(["1989-12-31"]), columns=["A", "B"], dtype="float64"
         )
@@ -163,7 +163,7 @@ class TestFrameAsof:
     def test_is_copy(self, date_range_frame):
         # GH-27357, GH-30784: ensure the result of asof is an actual copy and
         # doesn't track the parent dataframe / doesn't give SettingWithCopy warnings
-        df = date_range_frame
+        df = date_range_frame.astype({"A": float})
         N = 50
         df.loc[df.index[15:30], "A"] = np.nan
         dates = date_range("1/1/1990", periods=N * 3, freq="25s")

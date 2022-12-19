@@ -722,7 +722,7 @@ class TestiLocBaseIndependent:
         # assigning like "df.iloc[0, [0]] = ['Z']" should be evaluated
         # elementwisely, not using "setter('A', ['Z'])".
 
-        df = DataFrame([[1, 2], [3, 4]], columns=["A", "B"])
+        df = DataFrame([[1, 2], [3, 4]], columns=["A", "B"], dtype=object)
         df.iloc[0, indexer] = value
         result = df.iloc[0, 0]
 
