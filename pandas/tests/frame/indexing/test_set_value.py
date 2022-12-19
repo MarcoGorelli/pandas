@@ -1,4 +1,7 @@
 import numpy as np
+import pytest
+
+from pandas.errors import LossySetitemError
 
 from pandas.core.dtypes.common import is_float_dtype
 
@@ -26,10 +29,18 @@ class TestSetValue:
         assert float_frame._get_value("foobar", "qux") == 0
 
         res = float_frame.copy()
+        with pytest.raises(LossySetitemError, match=None):
+            res._set_value("foobar", "baz", "sam")
+        res["baz"] = np.nan
+        res["baz"] = res["baz"].astype(np.object_)
         res._set_value("foobar", "baz", "sam")
         assert res["baz"].dtype == np.object_
 
         res = float_frame.copy()
+        with pytest.raises(LossySetitemError, match=None):
+            res._set_value("foobar", "baz", True)
+        res["baz"] = np.nan
+        res["baz"] = res["baz"].astype(np.object_)
         res._set_value("foobar", "baz", True)
         assert res["baz"].dtype == np.object_
 
@@ -38,6 +49,10 @@ class TestSetValue:
         assert is_float_dtype(res["baz"])
         assert isna(res["baz"].drop(["foobar"])).all()
 
+        with pytest.raises(LossySetitemError, match=None):
+            res._set_value("foobar", "baz", "sam")
+        res["baz"] = np.nan
+        res["baz"] = res["baz"].astype(np.object_)
         res._set_value("foobar", "baz", "sam")
         assert res.loc["foobar", "baz"] == "sam"
 
