@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from pandas.errors import LossySetitemError
 import pandas.util._test_decorators as td
 
 import pandas as pd
@@ -146,12 +147,11 @@ class TestDataFrameUpdate:
         df = DataFrame({"a": [1, 3], "b": [np.nan, 2]})
         df["c"] = np.nan
         if using_copy_on_write:
-            df.update({"c": Series(["foo"], index=[0])})
+            with pytest.raises(LossySetitemError, match=None):
+                df.update({"c": Series(["foo"], index=[0])})
         else:
-            df["c"].update(Series(["foo"], index=[0]))
-
-        expected = DataFrame({"a": [1, 3], "b": [np.nan, 2], "c": ["foo", np.nan]})
-        tm.assert_frame_equal(df, expected)
+            with pytest.raises(LossySetitemError, match=None):
+                df["c"].update(Series(["foo"], index=[0]))
 
     @td.skip_array_manager_invalid_test
     def test_update_modify_view(self, using_copy_on_write):

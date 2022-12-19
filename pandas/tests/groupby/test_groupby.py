@@ -131,7 +131,7 @@ def test_inconsistent_return_type():
         return grp.iloc[0]
 
     result = df.groupby("A").apply(f_1)[["B"]]
-    e = expected.copy()
+    e = expected.copy().astype({"B": float})
     e.loc["Tiger"] = np.nan
     tm.assert_frame_equal(result, e)
 
@@ -141,7 +141,7 @@ def test_inconsistent_return_type():
         return grp.iloc[0]
 
     result = df.groupby("A").apply(f_2)[["B"]]
-    e = expected.copy()
+    e = expected.copy().astype({"B": float})
     e.loc["Pony"] = np.nan
     tm.assert_frame_equal(result, e)
 
