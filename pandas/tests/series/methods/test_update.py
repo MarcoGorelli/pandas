@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from pandas.errors import LossySetitemError
 import pandas.util._test_decorators as td
 
 from pandas import (
@@ -25,6 +26,7 @@ class TestUpdate:
         # GH 3217
         df = DataFrame([{"a": 1}, {"a": 3, "b": 2}])
         df["c"] = np.nan
+        df = df.astype({"c": object})
         df_orig = df.copy()
 
         df["c"].update(Series(["foo"], index=[0]))
@@ -65,9 +67,16 @@ class TestUpdate:
 
         ser = Series([10, 11, 12], dtype=dtype)
         other = Series(other, index=[1, 3])
-        ser.update(other)
-
-        tm.assert_series_equal(ser, expected)
+        if (
+            str(ser.dtype).startswith("int")
+            and not str(other.dtype).startswith("int")
+            and not (str(other.dtype).startswith("float") and not (other % 1).any())
+        ) or (str(ser.dtype).startswith("float") and other.dtype == "object"):
+            with pytest.raises(LossySetitemError, match=None):
+                ser.update(other)
+        else:
+            ser.update(other)
+            tm.assert_series_equal(ser, expected)
 
     @pytest.mark.parametrize(
         "series, other, expected",

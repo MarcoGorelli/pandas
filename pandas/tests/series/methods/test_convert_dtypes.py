@@ -3,6 +3,8 @@ from itertools import product
 import numpy as np
 import pytest
 
+from pandas.errors import LossySetitemError
+
 import pandas as pd
 import pandas._testing as tm
 
@@ -203,7 +205,13 @@ class TestSeriesConvertDtypes:
         # Test that it is a copy
         copy = series.copy(deep=True)
 
-        result[result.notna()] = np.nan
+        if result.dtype in ["interval[int64, right]"] or result.dtype in [
+            f"{u}int{n}" for u in ["", "u"] for n in [8, 16, 32, 64]
+        ]:
+            with pytest.raises((TypeError, LossySetitemError), match=None):
+                result[result.notna()] = np.nan
+        else:
+            result[result.notna()] = np.nan
 
         # Make sure original not changed
         tm.assert_series_equal(series, copy)

@@ -431,7 +431,7 @@ def test_closed_uneven():
 )
 def test_closed_min_max_minp(func, closed, expected):
     # see gh-21704
-    ser = Series(data=np.arange(10), index=date_range("2000", periods=10))
+    ser = Series(data=np.arange(10), index=date_range("2000", periods=10), dtype=float)
     ser[ser.index[-3:]] = np.nan
     result = getattr(ser.rolling("3D", min_periods=2, closed=closed), func)()
     expected = Series(expected, index=ser.index)
