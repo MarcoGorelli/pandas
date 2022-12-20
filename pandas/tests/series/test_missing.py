@@ -49,6 +49,7 @@ class TestSeriesMissingData:
         assert not isna(td1[0])
 
         # GH#16674 iNaT is treated as an integer when given by the user
+        td1 = td1.astype(object)
         td1[1] = iNaT
         assert not isna(td1[1])
         assert td1.dtype == np.object_
@@ -93,7 +94,7 @@ class TestSeriesMissingData:
 
 def test_hasnans_uncached_for_series():
     # GH#19700
-    idx = Index([0, 1])
+    idx = Index([0, 1], dtype=float)
     assert idx.hasnans is False
     assert "hasnans" in idx._cache
     ser = idx.to_series()

@@ -135,6 +135,7 @@ class TestMergeMulti:
         run_asserts(left, right, sort)
 
         # inject some nulls
+        left = left.astype({"1st": object, "2nd": float, "3rd": object})
         left.loc[1::23, "1st"] = np.nan
         left.loc[2::37, "2nd"] = np.nan
         left.loc[3::43, "3rd"] = np.nan
