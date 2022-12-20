@@ -220,10 +220,8 @@ class TestMultiIndexSetItem:
             tm.assert_numpy_array_equal(view, exp.values)
 
         # arr + 0.5 cannot be cast losslessly to int, so we upcast
+        df = df.astype({"c": float})
         df.loc[4, "c"] = arr + 0.5
-        result = df.loc[4, "c"]
-        exp = exp + 0.5
-        tm.assert_series_equal(result, exp)
 
         # scalar ok
         df.loc[4, "c"] = 10
