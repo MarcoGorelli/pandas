@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 
+from pandas.errors import LossySetitemError
+
 from pandas.core.dtypes.common import is_integer
 
 import pandas as pd
@@ -54,8 +56,13 @@ def test_where_unsafe_upcast(dtype, expected_dtype):
     values = [2.5, 3.5, 4.5, 5.5, 6.5]
     mask = s < 5
     expected = Series(values + list(range(5, 10)), dtype=expected_dtype)
-    s[mask] = values
-    tm.assert_series_equal(s, expected)
+    # with pytest.raises(LossySetitemError, match=None):
+    if str(s.dtype).startswith("int"):
+        with pytest.raises(LossySetitemError, match=None):
+            s[mask] = values
+    else:
+        s[mask] = values
+        tm.assert_series_equal(s, expected)
 
 
 def test_where_unsafe():
@@ -66,8 +73,8 @@ def test_where_unsafe():
     mask = s > 5
     expected = Series(list(range(6)) + values, dtype="float64")
 
-    s[mask] = values
-    tm.assert_series_equal(s, expected)
+    with pytest.raises(LossySetitemError, match=None):
+        s[mask] = values
 
     # see gh-3235
     s = Series(np.arange(10), dtype="int64")

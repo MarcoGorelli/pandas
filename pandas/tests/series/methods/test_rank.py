@@ -87,7 +87,7 @@ class TestSeriesRank:
 
         tm.assert_series_equal(iranks, exp)
 
-        iseries = Series(np.repeat(1, 100))
+        iseries = Series(np.repeat(1, 100), dtype=float)
         exp = Series(np.repeat(0.505, 100))
         iranks = iseries.rank(pct=True)
         tm.assert_series_equal(iranks, exp)
@@ -109,14 +109,14 @@ class TestSeriesRank:
         iranks = iseries.rank(pct=True)
         tm.assert_series_equal(iranks, exp)
 
-        iseries = Series(np.arange(5)) + 1
+        iseries = Series(np.arange(5), dtype=float) + 1
         iseries[4] = np.nan
         exp = iseries / 4.0
         iranks = iseries.rank(pct=True)
         tm.assert_series_equal(iranks, exp)
 
         rng = date_range("1/1/1990", periods=5)
-        iseries = Series(np.arange(5), rng) + 1
+        iseries = Series(np.arange(5), rng, dtype=float) + 1
         iseries.iloc[4] = np.nan
         exp = iseries / 4.0
         iranks = iseries.rank(pct=True)

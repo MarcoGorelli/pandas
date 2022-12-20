@@ -12,7 +12,10 @@ from dateutil.tz import gettz
 import numpy as np
 import pytest
 
-from pandas.errors import IndexingError
+from pandas.errors import (
+    IndexingError,
+    LossySetitemError,
+)
 import pandas.util._test_decorators as td
 
 import pandas as pd
@@ -382,9 +385,8 @@ class TestLocBaseIndependent:
         df2 = DataFrame({"a": [0, 1, 1], "b": [100, 200, 300]}, dtype="uint64")
         ix = df1["a"] == 1
         newb2 = df2.loc[ix, "b"]
-        df1.loc[ix, "b"] = newb2
-        expected = DataFrame({"a": [0, 1, 1], "b": [100, 200, 300]}, dtype="uint64")
-        tm.assert_frame_equal(df2, expected)
+        with pytest.raises(LossySetitemError, match=None):
+            df1.loc[ix, "b"] = newb2
 
     def test_loc_setitem_dtype(self):
         # GH31340
@@ -868,7 +870,7 @@ class TestLocBaseIndependent:
         # assigning like "df.loc[0, ['A']] = ['Z']" should be evaluated
         # elementwisely, not using "setter('A', ['Z'])".
 
-        df = DataFrame([[1, 2], [3, 4]], columns=["A", "B"])
+        df = DataFrame([[1, 2], [3, 4]], columns=["A", "B"], dtype=object)
         df.loc[0, indexer] = value
         result = df.loc[0, "A"]
 
@@ -1410,7 +1412,7 @@ class TestLocBaseIndependent:
     def test_loc_setitem_categorical_values_partial_column_slice(self):
         # Assigning a Category to parts of a int/... column uses the values of
         # the Categorical
-        df = DataFrame({"a": [1, 1, 1, 1, 1], "b": list("aaaaa")})
+        df = DataFrame({"a": [1, 1, 1, 1, 1], "b": list("aaaaa")}, dtype=object)
         exp = DataFrame({"a": [1, "b", "b", 1, 1], "b": list("aabba")})
         df.loc[1:2, "a"] = Categorical(["b", "b"], categories=["a", "b"])
         df.loc[2:3, "b"] = Categorical(["b", "b"], categories=["a", "b"])
@@ -1439,8 +1441,8 @@ class TestLocBaseIndependent:
         df.loc[0:1, "c"] = np.datetime64("2008-08-08")
         assert Timestamp("2008-08-08") == df.loc[0, "c"]
         assert Timestamp("2008-08-08") == df.loc[1, "c"]
-        df.loc[2, "c"] = date(2005, 5, 5)
-        assert Timestamp("2005-05-05").date() == df.loc[2, "c"]
+        with pytest.raises(TypeError, match=None):
+            df.loc[2, "c"] = date(2005, 5, 5)
 
     @pytest.mark.parametrize("idxer", ["var", ["var"]])
     def test_loc_setitem_datetimeindex_tz(self, idxer, tz_naive_fixture):
@@ -1525,7 +1527,7 @@ class TestLocBaseIndependent:
 
     def test_loc_setitem_2d_to_1d_raises(self):
         data = np.random.randn(2, 2)
-        ser = Series(range(2))
+        ser = Series(range(2), dtype=float)
 
         msg = "|".join(
             [
@@ -1604,6 +1606,7 @@ class TestLocBaseIndependent:
         # dtype conversion on setting
         df = DataFrame(np.random.rand(30, 3), columns=tuple("ABC"))
         df["event"] = np.nan
+        df = df.astype({"event": object})
         df.loc[10, "event"] = "foo"
         result = df.dtypes
         expected = Series(
@@ -2907,10 +2910,8 @@ def test_loc_setitem_uint8_upcast(value):
     # GH#26049
 
     df = DataFrame([1, 2, 3, 4], columns=["col1"], dtype="uint8")
-    df.loc[2, "col1"] = value  # value that can't be held in uint8
-
-    expected = DataFrame([1, 2, 300, 4], columns=["col1"], dtype="uint16")
-    tm.assert_frame_equal(df, expected)
+    with pytest.raises(LossySetitemError, match=None):
+        df.loc[2, "col1"] = value  # value that can't be held in uint8
 
 
 @pytest.mark.parametrize(

@@ -22,7 +22,7 @@ import pandas._testing as tm
 
 def test_at_timezone():
     # https://github.com/pandas-dev/pandas/issues/33544
-    result = DataFrame({"foo": [datetime(2000, 1, 1)]})
+    result = DataFrame({"foo": [datetime(2000, 1, 1)]}, dtype=object)
     result.at[0, "foo"] = datetime(2000, 1, 2, tzinfo=timezone.utc)
     expected = DataFrame(
         {"foo": [datetime(2000, 1, 2, tzinfo=timezone.utc)]}, dtype=object
@@ -115,8 +115,9 @@ class TestAtSetItem:
     @pytest.mark.parametrize("row", (Timestamp("2019-01-01"), "2019-01-01"))
     def test_at_datetime_index(self, row):
         df = DataFrame(
-            data=[[1] * 2], index=DatetimeIndex(data=["2019-01-01", "2019-01-02"])
-        )
+            data=[[1] * 2],
+            index=DatetimeIndex(data=["2019-01-01", "2019-01-02"]),
+        ).astype({0: float})
         expected = DataFrame(
             data=[[0.5, 1], [1.0, 1]],
             index=DatetimeIndex(data=["2019-01-01", "2019-01-02"]),

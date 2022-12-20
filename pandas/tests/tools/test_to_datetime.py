@@ -118,7 +118,7 @@ class TestTimeConversionFormats:
         tm.assert_series_equal(result, expected)
 
     def test_to_datetime_format_YYYYMMDD_with_nat(self, cache):
-        ser = Series([19801222, 19801222] + [19810105] * 5)
+        ser = Series([19801222, 19801222] + [19810105] * 5, dtype=float)
         # with NaT
         expected = Series(
             [Timestamp("19801222"), Timestamp("19801222")] + [Timestamp("19810105")] * 5
@@ -137,7 +137,7 @@ class TestTimeConversionFormats:
 
     def test_to_datetime_format_YYYYMM_with_nat(self, cache):
         # https://github.com/pandas-dev/pandas/issues/50237
-        ser = Series([198012, 198012] + [198101] * 5)
+        ser = Series([198012, 198012] + [198101] * 5, dtype=float)
         expected = Series(
             [Timestamp("19801201"), Timestamp("19801201")] + [Timestamp("19810101")] * 5
         )

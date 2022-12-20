@@ -68,7 +68,7 @@ def test_asfreq_fill_value(series, create_index):
     expected = ser.reindex(new_index)
     tm.assert_series_equal(result, expected)
 
-    frame = ser.to_frame("value")
+    frame = ser.to_frame("value").astype(float)
     frame.iloc[1] = None
     result = frame.resample("1H").asfreq(fill_value=4.0)
     new_index = create_index(frame.index[0], frame.index[-1], freq="1H")
