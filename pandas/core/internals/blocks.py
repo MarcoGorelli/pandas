@@ -1076,6 +1076,13 @@ class Block(PandasObject):
             #  without using 'casted', expressions.where may do unwanted upcasts.
             casted = np_can_hold_element(values.dtype, other)
         except (ValueError, TypeError, LossySetitemError):
+            warnings.warn(
+                f"Setting an item of incompatible dtype is deprecated "
+                "and will raise in a future error of pandas. "
+                f"Value {other} has dtype incompatible with {values.dtype}",
+                FutureWarning,
+                stacklevel=find_stack_level(),
+            )
             # we cannot coerce, return a compat dtype
 
             if self.ndim == 1 or self.shape[0] == 1:
