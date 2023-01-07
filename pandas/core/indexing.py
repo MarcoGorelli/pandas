@@ -2021,7 +2021,8 @@ class _iLocIndexer(_LocationIndexer):
                 warnings.warn(
                     f"Setting an item of incompatible dtype is deprecated "
                     "and will raise in a future error of pandas. "
-                    f"Value {value} has dtype incompatible with {self.obj.dtypes[loc]}",
+                    f"Value {value} has dtype incompatible with "
+                    f"{self.obj.dtypes.iloc[loc]}",
                     FutureWarning,
                     stacklevel=find_stack_level(),
                 )
