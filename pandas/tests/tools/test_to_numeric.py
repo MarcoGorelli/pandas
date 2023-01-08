@@ -4,7 +4,10 @@ import numpy as np
 from numpy import iinfo
 import pytest
 
-from pandas.compat import is_platform_arm
+from pandas.compat import (
+    is_numpy_dev,
+    is_platform_arm,
+)
 
 import pandas as pd
 from pandas import (
@@ -575,7 +578,13 @@ def test_downcast_limits(dtype, downcast, min_max):
 def test_downcast_float64_to_float32():
     # GH-43693: Check float64 preservation when >= 16,777,217
     series = Series([16777217.0, np.finfo(np.float64).max, np.nan], dtype=np.float64)
-    result = to_numeric(series, downcast="float")
+    with tm.maybe_produces_warning(
+        RuntimeWarning,
+        is_numpy_dev,
+        match="overflow encountered in cast",
+        check_stacklevel=False,
+    ):
+        result = to_numeric(series, downcast="float")
 
     assert series.dtype == result.dtype
 
@@ -774,6 +783,7 @@ def test_to_numeric_from_nullable_string(values, nullable_string_dtype, expected
         ([1, 1.1], "Float32", "float", "Float32"),
     ),
 )
+@pytest.mark.filterwarnings("ignore:invalid value encountered in cast:RuntimeWarning")
 def test_downcast_nullable_numeric(data, input_dtype, downcast, expected_dtype):
     arr = pd.array(data, dtype=input_dtype)
     result = to_numeric(arr, downcast=downcast)
@@ -802,6 +812,7 @@ def test_to_numeric_scientific_notation():
 
 
 @pytest.mark.parametrize("val", [9876543210.0, 2.0**128])
+@pytest.mark.filterwarnings("ignore:overflow encountered in cast:RuntimeWarning")
 def test_to_numeric_large_float_not_downcast_to_float_32(val):
     # GH 19729
     expected = Series([val])

@@ -31,6 +31,9 @@ class BaseAccumulateTests(BaseExtensionTests):
             getattr(ser, op_name)(skipna=skipna)
 
     @pytest.mark.parametrize("skipna", [True, False])
+    @pytest.mark.filterwarnings(
+        "ignore:overflow encountered in accumulate:RuntimeWarning"
+    )
     def test_accumulate_series(self, data, all_numeric_accumulations, skipna):
         op_name = all_numeric_accumulations
         ser = pd.Series(data)

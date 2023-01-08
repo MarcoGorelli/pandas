@@ -20,6 +20,7 @@ import pytest
 from pandas.compat import (
     IS64,
     is_ci_environment,
+    is_numpy_dev,
 )
 from pandas.errors import ParserError
 import pandas.util._test_decorators as td
@@ -115,13 +116,16 @@ nan 2
 """
     # fallback casting, but not castable
     with pytest.raises(ValueError, match="cannot safely convert"):
-        parser.read_csv(
-            StringIO(data),
-            sep=r"\s+",
-            header=None,
-            names=["a", "b"],
-            dtype={"a": np.int32},
-        )
+        with tm.maybe_produces_warning(
+            RuntimeError, is_numpy_dev, match="test_dtype_and_names_error"
+        ):
+            parser.read_csv(
+                StringIO(data),
+                sep=r"\s+",
+                header=None,
+                names=["a", "b"],
+                dtype={"a": np.int32},
+            )
 
 
 @pytest.mark.parametrize(

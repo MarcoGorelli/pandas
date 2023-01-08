@@ -32,6 +32,7 @@ def test_int_byteswap(read_offset, number, int_type, should_byteswap):
 @given(read_offset=st.integers(0, 11), number=st.floats())
 @pytest.mark.parametrize("float_type", [np.float32, np.float64])
 @pytest.mark.parametrize("should_byteswap", [True, False])
+@pytest.mark.filterwarnings("ignore:overflow encountered in cast:RuntimeWarning")
 def test_float_byteswap(read_offset, number, float_type, should_byteswap):
     _test(number, float_type, read_offset, should_byteswap)
 

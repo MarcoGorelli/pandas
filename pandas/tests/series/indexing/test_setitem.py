@@ -6,6 +6,7 @@ from datetime import (
 import numpy as np
 import pytest
 
+from pandas.compat import is_numpy_dev
 from pandas.errors import IndexingError
 
 from pandas.core.dtypes.common import is_list_like
@@ -1473,7 +1474,13 @@ def test_32878_complex_itemsize():
     val = val.astype("c16")
 
     # GH#32878 used to coerce val to inf+0.000000e+00j
-    ser[0] = val
+    with tm.maybe_produces_warning(
+        RuntimeWarning,
+        is_numpy_dev,
+        match="overflow encountered in cast",
+        check_stacklevel=False,
+    ):
+        ser[0] = val
     assert ser[0] == val
     expected = Series([val, 1, 2, 3, 4], dtype="c16")
     tm.assert_series_equal(ser, expected)
