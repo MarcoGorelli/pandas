@@ -774,6 +774,7 @@ Other API changes
 - Division by zero with :class:`ArrowDtype` dtypes returns ``-inf``, ``nan``, or ``inf`` depending on the numerator, instead of raising (:issue:`51541`)
 - Added :func:`pandas.api.types.is_any_real_numeric_dtype` to check for real numeric dtypes (:issue:`51152`)
 - :meth:`~arrays.ArrowExtensionArray.value_counts` now returns data with :class:`ArrowDtype` with ``pyarrow.int64`` type instead of ``"Int64"`` type (:issue:`51462`)
+- When inferring the datetime format in :func:`to_datetime`, "May" is now guessed as ``"%b"`` rather than ``"%B"`` (:issue:`51758`)
 
 .. note::
 
