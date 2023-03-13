@@ -147,7 +147,7 @@ def _ensure_encoding(encoding: str | None) -> str:
     return encoding
 
 
-def _ensure_str(name):
+def _ensure_str(name: str):
     """
     Ensure that an index / column name is a str (python 3); otherwise they
     may be np.string dtype. Non-string dtypes are passed through unchanged.
@@ -799,7 +799,7 @@ class HDFStore:
         stop=None,
         columns=None,
         iterator: bool = False,
-        chunksize=None,
+        chunksize: int | None = None,
         auto_close: bool = False,
     ):
         """
@@ -947,7 +947,7 @@ class HDFStore:
         start=None,
         stop=None,
         iterator: bool = False,
-        chunksize=None,
+        chunksize: int | None = None,
         auto_close: bool = False,
     ):
         """
@@ -1201,7 +1201,7 @@ class HDFStore:
         columns=None,
         min_itemsize: int | dict[str, int] | None = None,
         nan_rep=None,
-        chunksize=None,
+        chunksize: int | None = None,
         expectedrows=None,
         dropna: bool | None = None,
         data_columns: Literal[True] | list[str] | None = None,
@@ -1733,7 +1733,7 @@ class HDFStore:
         complevel: int | None = None,
         fletcher32=None,
         min_itemsize: int | dict[str, int] | None = None,
-        chunksize=None,
+        chunksize: int | None = None,
         expectedrows=None,
         dropna: bool = False,
         nan_rep=None,
@@ -1969,7 +1969,7 @@ class IndexCol:
         pos=None,
         freq=None,
         tz=None,
-        index_name=None,
+        index_name: str | None = None,
         ordered=None,
         table=None,
         meta=None,
@@ -2141,7 +2141,7 @@ class IndexCol:
         self.write_metadata(handler)
         self.set_attr()
 
-    def validate_col(self, itemsize=None):
+    def validate_col(self, itemsize: int | None = None):
         """validate this column: return the compared against itemsize"""
         # validate this column for string truncation (or reset to the max size)
         if _ensure_decoded(self.kind) == "string":
@@ -2384,7 +2384,7 @@ class DataCol(IndexCol):
         return atom
 
     @classmethod
-    def get_atom_string(cls, shape, itemsize):
+    def get_atom_string(cls, shape, itemsize: int):
         return _tables().StringCol(itemsize=itemsize, shape=shape[0])
 
     @classmethod
@@ -2555,7 +2555,7 @@ class DataIndexableCol(DataCol):
             raise ValueError("cannot have non-object label DataIndexableCol")
 
     @classmethod
-    def get_atom_string(cls, shape, itemsize):
+    def get_atom_string(cls, shape, itemsize: int):
         return _tables().StringCol(itemsize=itemsize)
 
     @classmethod
@@ -4270,7 +4270,7 @@ class AppendableTable(Table):
         complevel=None,
         fletcher32=None,
         min_itemsize=None,
-        chunksize=None,
+        chunksize: int | None = None,
         expectedrows=None,
         dropna: bool = False,
         nan_rep=None,

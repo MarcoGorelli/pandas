@@ -134,7 +134,7 @@ class TimedeltaIndex(DatetimeTimedeltaMixin):
         closed=None,
         dtype=None,
         copy: bool = False,
-        name=None,
+        name: str | None = None,
     ):
         name = maybe_extract_name(name, data, cls)
 
@@ -225,7 +225,7 @@ def timedelta_range(
     end=None,
     periods: int | None = None,
     freq=None,
-    name=None,
+    name: str | None = None,
     closed=None,
     *,
     unit: str | None = None,

@@ -566,8 +566,8 @@ def crosstab(
     index,
     columns,
     values=None,
-    rownames=None,
-    colnames=None,
+    rownames: Sequence[str] | None = None,
+    colnames: Sequence[str] | None = None,
     aggfunc=None,
     margins: bool = False,
     margins_name: Hashable = "All",
@@ -735,7 +735,7 @@ def crosstab(
 
 
 def _normalize(
-    table: DataFrame, normalize, margins: bool, margins_name: Hashable = "All"
+    table: DataFrame, normalize: bool, margins: bool, margins_name: Hashable = "All"
 ) -> DataFrame:
     if not isinstance(normalize, (bool, str)):
         axis_subs = {0: "index", 1: "columns"}
@@ -814,7 +814,7 @@ def _normalize(
     return table
 
 
-def _get_names(arrs, names, prefix: str = "row"):
+def _get_names(arrs, names: Sequence[str], prefix: str = "row"):
     if names is None:
         names = []
         for i, arr in enumerate(arrs):
@@ -861,7 +861,7 @@ def _build_names_mapper(
 
     """
 
-    def get_duplicates(names):
+    def get_duplicates(names: Sequence[str]):
         seen: set = set()
         return {name for name in names if name not in seen}
 

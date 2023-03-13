@@ -296,7 +296,7 @@ class NDArrayBackedExtensionArray(NDArrayBacked, ExtensionArray):
         return result
 
     def _fill_mask_inplace(
-        self, method: str, limit, mask: npt.NDArray[np.bool_]
+        self, method: str, limit: int, mask: npt.NDArray[np.bool_]
     ) -> None:
         # (for now) when self.ndim == 2, we assume axis=0
         func = missing.get_fill_func(method, ndim=self.ndim)
@@ -304,7 +304,10 @@ class NDArrayBackedExtensionArray(NDArrayBacked, ExtensionArray):
 
     @doc(ExtensionArray.fillna)
     def fillna(
-        self: NDArrayBackedExtensionArrayT, value=None, method=None, limit=None
+        self: NDArrayBackedExtensionArrayT,
+        value=None,
+        method=None,
+        limit: int | None = None,
     ) -> NDArrayBackedExtensionArrayT:
         value, method = validate_fillna_kwargs(
             value, method, validate_scalar_dict_value=False

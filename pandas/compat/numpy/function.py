@@ -215,7 +215,7 @@ validate_cumsum = CompatValidator(
 )
 
 
-def validate_cum_func_with_skipna(skipna, args, kwargs, name) -> bool:
+def validate_cum_func_with_skipna(skipna, args, kwargs, name: str) -> bool:
     """
     If this function is called via the 'numpy' library, the third parameter in
     its signature is 'dtype', which takes either a 'numpy' dtype or 'None', so
@@ -339,7 +339,7 @@ validate_transpose = CompatValidator(
 )
 
 
-def validate_groupby_func(name, args, kwargs, allowed=None) -> None:
+def validate_groupby_func(name: str, args, kwargs, allowed=None) -> None:
     """
     'args' and 'kwargs' should be empty, except for allowed kwargs because all
     of their necessary parameters are explicitly listed in the function

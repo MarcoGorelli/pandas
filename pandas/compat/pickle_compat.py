@@ -142,7 +142,7 @@ _class_locations_map = {
 
 
 class Unpickler(pkl._Unpickler):
-    def find_class(self, module, name):
+    def find_class(self, module, name: str):
         # override superclass
         key = (module, name)
         module, name = _class_locations_map.get(key, key)

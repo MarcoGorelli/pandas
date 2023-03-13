@@ -314,10 +314,10 @@ class MultiIndex(Index):
         levels=None,
         codes=None,
         sortorder=None,
-        names=None,
+        names: Sequence[str] | None = None,
         dtype=None,
         copy: bool = False,
-        name=None,
+        name: str | None = None,
         verify_integrity: bool = True,
     ) -> MultiIndex:
         # compat with Index
@@ -655,7 +655,9 @@ class MultiIndex(Index):
         return cls(levels, codes, sortorder=sortorder, names=names)
 
     @classmethod
-    def from_frame(cls, df: DataFrame, sortorder=None, names=None) -> MultiIndex:
+    def from_frame(
+        cls, df: DataFrame, sortorder=None, names: Sequence[str] | None = None
+    ) -> MultiIndex:
         """
         Make a MultiIndex from a DataFrame.
 
@@ -1116,7 +1118,9 @@ class MultiIndex(Index):
         return type(self).from_tuples
 
     @doc(Index._shallow_copy)
-    def _shallow_copy(self, values: np.ndarray, name=lib.no_default) -> MultiIndex:
+    def _shallow_copy(
+        self, values: np.ndarray, name: str = lib.no_default
+    ) -> MultiIndex:
         names = name if name is not lib.no_default else self.names
 
         return type(self).from_tuples(values, sortorder=None, names=names)
@@ -1138,9 +1142,9 @@ class MultiIndex(Index):
     # error: Signature of "copy" incompatible with supertype "Index"
     def copy(  # type: ignore[override]
         self,
-        names=None,
+        names: Sequence[str] | None = None,
         deep: bool = False,
-        name=None,
+        name: str | None = None,
     ):
         """
         Make a copy of this object.
@@ -1391,7 +1395,7 @@ class MultiIndex(Index):
     def _get_names(self) -> FrozenList:
         return FrozenList(self._names)
 
-    def _set_names(self, names, *, level=None, validate: bool = True):
+    def _set_names(self, names: Sequence[str], *, level=None, validate: bool = True):
         """
         Set new names on index. Each name has to be a hashable type.
 
@@ -1663,7 +1667,7 @@ class MultiIndex(Index):
     def to_frame(
         self,
         index: bool = True,
-        name=lib.no_default,
+        name: str = lib.no_default,
         allow_duplicates: bool = False,
     ) -> DataFrame:
         """
@@ -3792,7 +3796,7 @@ def _lexsort_depth(codes: list[np.ndarray], nlevels: int) -> int:
     return 0
 
 
-def sparsify_labels(label_list, start: int = 0, sentinel: object = ""):
+def sparsify_labels(label_list: list[str], start: int = 0, sentinel: object = ""):
     pivoted = list(zip(*label_list))
     k = len(label_list)
 

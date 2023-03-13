@@ -1675,7 +1675,7 @@ def _get_level_lengths(
     return non_zero_lengths
 
 
-def _is_visible(idx_row, idx_col, lengths) -> bool:
+def _is_visible(idx_row, idx_col, lengths: Sequence[int]) -> bool:
     """
     Index -> {(idx_row, idx_col): bool}).
     """

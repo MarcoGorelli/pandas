@@ -424,7 +424,7 @@ class BaseBlockManager(DataManager):
 
         return self.apply("shift", periods=periods, axis=axis, fill_value=fill_value)
 
-    def fillna(self: T, value, limit, inplace: bool, downcast) -> T:
+    def fillna(self: T, value, limit: int, inplace: bool, downcast) -> T:
         if limit is not None:
             # Do this validation even if we go through one of the no-op paths
             limit = libalgos.validate_limit(None, limit=limit)

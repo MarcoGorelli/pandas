@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 def get_dummies(
     data,
-    prefix=None,
+    prefix: str | None = None,
     prefix_sep: str | Iterable[str] | dict[str, str] = "_",
     dummy_na: bool = False,
     columns=None,
@@ -161,7 +161,7 @@ def get_dummies(
             data_to_encode = data[columns]
 
         # validate prefixes and separator to avoid silently dropping cols
-        def check_len(item, name):
+        def check_len(item, name: str):
             if is_list_like(item):
                 if not len(item) == data_to_encode.shape[1]:
                     len_msg = (
@@ -229,7 +229,7 @@ def get_dummies(
 
 def _get_dummies_1d(
     data,
-    prefix,
+    prefix: str,
     prefix_sep: str | Iterable[str] | dict[str, str] = "_",
     dummy_na: bool = False,
     sparse: bool = False,

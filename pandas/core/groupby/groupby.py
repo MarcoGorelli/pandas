@@ -659,7 +659,7 @@ class BaseGroupBy(PandasObject, SelectionMixin[NDFrameT], GroupByIndexingMixin):
         return self.grouper.indices
 
     @final
-    def _get_indices(self, names):
+    def _get_indices(self, names: Sequence[str]):
         """
         Safe get multiple indices, translate keys for
         datelike to underlying repr.
@@ -710,7 +710,7 @@ class BaseGroupBy(PandasObject, SelectionMixin[NDFrameT], GroupByIndexingMixin):
         return [self.indices.get(name, []) for name in names]
 
     @final
-    def _get_index(self, name):
+    def _get_index(self, name: str):
         """
         Safe get index, translate keys for datelike to underlying repr.
         """
@@ -773,7 +773,7 @@ class BaseGroupBy(PandasObject, SelectionMixin[NDFrameT], GroupByIndexingMixin):
         return com.pipe(self, func, *args, **kwargs)
 
     @final
-    def get_group(self, name, obj=None) -> DataFrame | Series:
+    def get_group(self, name: str, obj=None) -> DataFrame | Series:
         """
         Construct DataFrame from group with provided name.
 
@@ -2783,7 +2783,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         )
 
     @final
-    def _fill(self, direction: Literal["ffill", "bfill"], limit=None):
+    def _fill(self, direction: Literal["ffill", "bfill"], limit: int | None = None):
         """
         Shared function for `pad` and `backfill` to call Cython method.
 
@@ -2870,7 +2870,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
 
     @final
     @Substitution(name="groupby")
-    def ffill(self, limit=None):
+    def ffill(self, limit: int | None = None):
         """
         Forward fill the values.
 
@@ -2895,7 +2895,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
 
     @final
     @Substitution(name="groupby")
-    def bfill(self, limit=None):
+    def bfill(self, limit: int | None = None):
         """
         Backward fill the values.
 
@@ -3855,7 +3855,7 @@ class GroupBy(BaseGroupBy[NDFrameT]):
         self,
         periods: int = 1,
         fill_method: FillnaOptions = "ffill",
-        limit=None,
+        limit: int | None = None,
         freq=None,
         axis: Axis = 0,
     ):

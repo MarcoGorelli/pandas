@@ -107,7 +107,7 @@ class disallow:
 
 
 class bottleneck_switch:
-    def __init__(self, name=None, **kwargs) -> None:
+    def __init__(self, name: str | None = None, **kwargs) -> None:
         self.name = name
         self.kwargs = kwargs
 

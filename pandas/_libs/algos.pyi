@@ -59,36 +59,36 @@ def nancorr_spearman(
 
 # ----------------------------------------------------------------------
 
-def validate_limit(nobs: int | None, limit=...) -> int: ...
+def validate_limit(nobs: int | None, limit: int = ...) -> int: ...
 def pad(
     old: np.ndarray,  # ndarray[numeric_object_t]
     new: np.ndarray,  # ndarray[numeric_object_t]
-    limit=...,
+    limit: int = ...,
 ) -> npt.NDArray[np.intp]: ...  # np.ndarray[np.intp, ndim=1]
 def pad_inplace(
     values: np.ndarray,  # numeric_object_t[:]
     mask: np.ndarray,  # uint8_t[:]
-    limit=...,
+    limit: int = ...,
 ) -> None: ...
 def pad_2d_inplace(
     values: np.ndarray,  # numeric_object_t[:, :]
     mask: np.ndarray,  # const uint8_t[:, :]
-    limit=...,
+    limit: int = ...,
 ) -> None: ...
 def backfill(
     old: np.ndarray,  # ndarray[numeric_object_t]
     new: np.ndarray,  # ndarray[numeric_object_t]
-    limit=...,
+    limit: int = ...,
 ) -> npt.NDArray[np.intp]: ...  # np.ndarray[np.intp, ndim=1]
 def backfill_inplace(
     values: np.ndarray,  # numeric_object_t[:]
     mask: np.ndarray,  # uint8_t[:]
-    limit=...,
+    limit: int = ...,
 ) -> None: ...
 def backfill_2d_inplace(
     values: np.ndarray,  # numeric_object_t[:, :]
     mask: np.ndarray,  # const uint8_t[:, :]
-    limit=...,
+    limit: int = ...,
 ) -> None: ...
 def is_monotonic(
     arr: np.ndarray,  # ndarray[numeric_object_t, ndim=1]

@@ -670,7 +670,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
 
     def set_axis(
         self: NDFrameT,
-        labels,
+        labels: Sequence[str],
         *,
         axis: Axis = 0,
         copy: bool_t | None = None,
@@ -708,7 +708,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
 
     @final
     def _set_axis_nocheck(
-        self, labels, axis: Axis, inplace: bool_t, copy: bool_t | None
+        self, labels: Sequence[str], axis: Axis, inplace: bool_t, copy: bool_t | None
     ):
         if inplace:
             setattr(self, self._get_axis_name(axis), labels)
@@ -1254,7 +1254,11 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
 
     @final
     def _set_axis_name(
-        self, name, axis: Axis = 0, inplace: bool_t = False, copy: bool_t | None = True
+        self,
+        name: str,
+        axis: Axis = 0,
+        inplace: bool_t = False,
+        copy: bool_t | None = True,
     ):
         """
         Set the name(s) of the axis.
@@ -4282,7 +4286,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
     # Unsorted
 
     @final
-    def _check_inplace_and_allows_duplicate_labels(self, inplace):
+    def _check_inplace_and_allows_duplicate_labels(self, inplace: bool_t):
         if inplace and not self.flags.allows_duplicate_labels:
             raise ValueError(
                 "Cannot specify 'inplace=True' when "
@@ -4360,8 +4364,8 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         other,
         method: Literal["backfill", "bfill", "pad", "ffill", "nearest"] | None = None,
         copy: bool_t | None = None,
-        limit=None,
-        tolerance=None,
+        limit: int | None = None,
+        tolerance: float | None = None,
     ) -> NDFrameT:
         """
         Return an object with matching indices as other object.
@@ -4550,7 +4554,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
     @final
     def _drop_axis(
         self: NDFrameT,
-        labels,
+        labels: Sequence[str],
         axis,
         level=None,
         errors: IgnoreRaise = "raise",
@@ -5102,7 +5106,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
     )
     def reindex(
         self: NDFrameT,
-        labels=None,
+        labels: Sequence[str] | None = None,
         index=None,
         columns=None,
         axis: Axis | None = None,
@@ -5111,7 +5115,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         level: Level | None = None,
         fill_value: Scalar | None = np.nan,
         limit: int | None = None,
-        tolerance=None,
+        tolerance: float | None = None,
     ) -> NDFrameT:
         """
         Conform {klass} to new index with optional filling logic.
@@ -5355,7 +5359,14 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         ).__finalize__(self, method="reindex")
 
     def _reindex_axes(
-        self: NDFrameT, axes, level, limit, tolerance, method, fill_value, copy
+        self: NDFrameT,
+        axes,
+        level,
+        limit: int,
+        tolerance: float,
+        method,
+        fill_value,
+        copy: bool_t,
     ) -> NDFrameT:
         """Perform the reindex for all the axes."""
         obj = self
@@ -5395,7 +5406,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
             )
         )
 
-    def _reindex_multi(self, axes, copy, fill_value):
+    def _reindex_multi(self, axes, copy: bool_t, fill_value):
         raise AbstractMethodError(self)
 
     @final
@@ -8066,7 +8077,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         return result
 
     @final
-    def _clip_with_one_bound(self, threshold, method, axis, inplace):
+    def _clip_with_one_bound(self, threshold, method, axis, inplace: bool_t):
         if axis is not None:
             axis = self._get_axis_number(axis)
 
@@ -8928,7 +8939,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         )
 
     @final
-    def first(self: NDFrameT, offset) -> NDFrameT:
+    def first(self: NDFrameT, offset: int) -> NDFrameT:
         """
         Select initial periods of time series data based on a date offset.
 
@@ -9001,7 +9012,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         return self.loc[:end]
 
     @final
-    def last(self: NDFrameT, offset) -> NDFrameT:
+    def last(self: NDFrameT, offset: int) -> NDFrameT:
         """
         Select final periods of time series data based on a date offset.
 
@@ -9505,7 +9516,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         copy: bool_t | None = None,
         fill_value=None,
         method=None,
-        limit=None,
+        limit: int | None = None,
         fill_axis: Axis = 0,
     ) -> tuple[NDFrameT, DataFrame]:
         # defaults
@@ -9569,7 +9580,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         copy: bool_t | None = None,
         fill_value=None,
         method=None,
-        limit=None,
+        limit: int | None = None,
         fill_axis: Axis = 0,
     ) -> tuple[NDFrameT, Series]:
         is_series = isinstance(self, ABCSeries)
@@ -10867,7 +10878,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         self: NDFrameT,
         periods: int = 1,
         fill_method: Literal["backfill", "bfill", "pad", "ffill"] | None = "pad",
-        limit=None,
+        limit: int | None = None,
         freq=None,
         **kwargs,
     ) -> NDFrameT:

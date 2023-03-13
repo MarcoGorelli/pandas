@@ -171,7 +171,7 @@ class DatetimeIndexOpsMixin(NDArrayBackedExtensionIndex, ABC):
             return False
         return True
 
-    def _convert_tolerance(self, tolerance, target):
+    def _convert_tolerance(self, tolerance: float, target):
         tolerance = np.asarray(to_timedelta(tolerance).to_numpy())
         return super()._convert_tolerance(tolerance, target)
 
@@ -228,7 +228,7 @@ class DatetimeIndexOpsMixin(NDArrayBackedExtensionIndex, ABC):
         return attrs
 
     @Appender(Index._summary.__doc__)
-    def _summary(self, name=None) -> str:
+    def _summary(self, name: str | None = None) -> str:
         result = super()._summary(name=name)
         if self.freq:
             result += f"\nFreq: {self.freqstr}"
@@ -322,7 +322,7 @@ class DatetimeIndexOpsMixin(NDArrayBackedExtensionIndex, ABC):
             # try to find the dates
             return (lhs_mask & rhs_mask).nonzero()[0]
 
-    def _maybe_cast_slice_bound(self, label, side: str):
+    def _maybe_cast_slice_bound(self, label: str, side: str):
         """
         If label is a string, cast it to scalar type according to resolution.
 

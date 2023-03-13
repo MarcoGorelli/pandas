@@ -56,7 +56,7 @@ class XlrdReader(BaseExcelReader):
     def sheet_names(self):
         return self.book.sheet_names()
 
-    def get_sheet_by_name(self, name):
+    def get_sheet_by_name(self, name: str):
         self.raise_if_bad_sheet_by_name(name)
         return self.book.sheet_by_name(name)
 

@@ -1090,7 +1090,7 @@ class BinGrouper(BaseGrouper):
     def __init__(
         self,
         bins,
-        binlabels,
+        binlabels: Sequence[str],
         indexer=None,
     ) -> None:
         self.bins = ensure_int64(bins)

@@ -4912,7 +4912,9 @@ class DataFrame(NDFrame, OpsMixin):
     # ----------------------------------------------------------------------
     # Reindexing and alignment
 
-    def _reindex_axes(self, axes, level, limit, tolerance, method, fill_value, copy):
+    def _reindex_axes(
+        self, axes, level, limit: int, tolerance: float, method, fill_value, copy: bool
+    ):
         frame = self
 
         columns = axes["columns"]
@@ -4936,8 +4938,8 @@ class DataFrame(NDFrame, OpsMixin):
         copy: bool,
         level: Level,
         fill_value=np.nan,
-        limit=None,
-        tolerance=None,
+        limit: int | None = None,
+        tolerance: float | None = None,
     ):
         new_index, indexer = self.index.reindex(
             new_index, method=method, level=level, limit=limit, tolerance=tolerance
@@ -4956,8 +4958,8 @@ class DataFrame(NDFrame, OpsMixin):
         copy: bool,
         level: Level,
         fill_value=None,
-        limit=None,
-        tolerance=None,
+        limit: int | None = None,
+        tolerance: float | None = None,
     ):
         new_columns, indexer = self.columns.reindex(
             new_columns, method=method, level=level, limit=limit, tolerance=tolerance
@@ -5054,7 +5056,7 @@ class DataFrame(NDFrame, OpsMixin):
     @Appender(NDFrame.set_axis.__doc__)
     def set_axis(
         self,
-        labels,
+        labels: Sequence[str],
         *,
         axis: Axis = 0,
         copy: bool | None = None,
@@ -5068,7 +5070,7 @@ class DataFrame(NDFrame, OpsMixin):
     )
     def reindex(  # type: ignore[override]
         self,
-        labels=None,
+        labels: Sequence[str] | None = None,
         *,
         index=None,
         columns=None,
@@ -5078,7 +5080,7 @@ class DataFrame(NDFrame, OpsMixin):
         level: Level | None = None,
         fill_value: Scalar | None = np.nan,
         limit: int | None = None,
-        tolerance=None,
+        tolerance: float | None = None,
     ) -> DataFrame:
         return super().reindex(
             labels=labels,
@@ -9401,7 +9403,7 @@ Parrot 2  Parrot       24.0
         self,
         id_vars=None,
         value_vars=None,
-        var_name=None,
+        var_name: str | None = None,
         value_name: Hashable = "value",
         col_level: Level = None,
         ignore_index: bool = True,

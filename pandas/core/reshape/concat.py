@@ -11,6 +11,7 @@ from typing import (
     Iterable,
     Literal,
     Mapping,
+    Sequence,
     cast,
     overload,
 )
@@ -71,7 +72,7 @@ def concat(
     ignore_index: bool = ...,
     keys=...,
     levels=...,
-    names=...,
+    names: Sequence[str] = ...,
     verify_integrity: bool = ...,
     sort: bool = ...,
     copy: bool | None = ...,
@@ -88,7 +89,7 @@ def concat(
     ignore_index: bool = ...,
     keys=...,
     levels=...,
-    names=...,
+    names: Sequence[str] = ...,
     verify_integrity: bool = ...,
     sort: bool = ...,
     copy: bool | None = ...,
@@ -105,7 +106,7 @@ def concat(
     ignore_index: bool = ...,
     keys=...,
     levels=...,
-    names=...,
+    names: Sequence[str] = ...,
     verify_integrity: bool = ...,
     sort: bool = ...,
     copy: bool | None = ...,
@@ -122,7 +123,7 @@ def concat(
     ignore_index: bool = ...,
     keys=...,
     levels=...,
-    names=...,
+    names: Sequence[str] = ...,
     verify_integrity: bool = ...,
     sort: bool = ...,
     copy: bool | None = ...,
@@ -139,7 +140,7 @@ def concat(
     ignore_index: bool = ...,
     keys=...,
     levels=...,
-    names=...,
+    names: Sequence[str] = ...,
     verify_integrity: bool = ...,
     sort: bool = ...,
     copy: bool | None = ...,
@@ -155,7 +156,7 @@ def concat(
     ignore_index: bool = False,
     keys=None,
     levels=None,
-    names=None,
+    names: Sequence[str] | None = None,
     verify_integrity: bool = False,
     sort: bool = False,
     copy: bool | None = None,
@@ -398,7 +399,7 @@ class _Concatenator:
         join: str = "outer",
         keys=None,
         levels=None,
-        names=None,
+        names: Sequence[str] | None = None,
         ignore_index: bool = False,
         verify_integrity: bool = False,
         copy: bool = True,
@@ -710,7 +711,9 @@ def _concat_indexes(indexes) -> Index:
     return indexes[0].append(indexes[1:])
 
 
-def _make_concat_multiindex(indexes, keys, levels=None, names=None) -> MultiIndex:
+def _make_concat_multiindex(
+    indexes, keys, levels=None, names: Sequence[str] | None = None
+) -> MultiIndex:
     if (levels is None and isinstance(keys[0], tuple)) or (
         levels is not None and len(levels) > 1
     ):

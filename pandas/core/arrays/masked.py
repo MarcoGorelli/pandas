@@ -168,7 +168,7 @@ class BaseMaskedArray(OpsMixin, ExtensionArray):
 
     @doc(ExtensionArray.fillna)
     def fillna(
-        self: BaseMaskedArrayT, value=None, method=None, limit=None
+        self: BaseMaskedArrayT, value=None, method=None, limit: int | None = None
     ) -> BaseMaskedArrayT:
         value, method = validate_fillna_kwargs(value, method)
 

@@ -895,7 +895,7 @@ class IntervalArray(IntervalMixin, ExtensionArray):
         return obj[indexer]
 
     def fillna(
-        self: IntervalArrayT, value=None, method=None, limit=None
+        self: IntervalArrayT, value=None, method=None, limit: int | None = None
     ) -> IntervalArrayT:
         """
         Fill NA/NaN values using the specified method.

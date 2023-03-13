@@ -227,7 +227,7 @@ def execute(sql, con, params=None):
 
 @overload
 def read_sql_table(
-    table_name,
+    table_name: str,
     con,
     schema=...,
     index_col: str | list[str] | None = ...,
@@ -242,7 +242,7 @@ def read_sql_table(
 
 @overload
 def read_sql_table(
-    table_name,
+    table_name: str,
     con,
     schema=...,
     index_col: str | list[str] | None = ...,
@@ -880,7 +880,7 @@ class SQLTable(PandasObject):
         index: bool | str | list[str] | None = True,
         if_exists: Literal["fail", "replace", "append"] = "fail",
         prefix: str = "pandas",
-        index_label=None,
+        index_label: str | None = None,
         schema=None,
         keys=None,
         dtype: DtypeArg | None = None,
@@ -1089,7 +1089,7 @@ class SQLTable(PandasObject):
         coerce_float: bool = True,
         parse_dates=None,
         columns=None,
-        chunksize=None,
+        chunksize: int | None = None,
         use_nullable_dtypes: bool = False,
     ) -> DataFrame | Iterator[DataFrame]:
         from sqlalchemy import select
@@ -1130,7 +1130,7 @@ class SQLTable(PandasObject):
 
             return self.frame
 
-    def _index_name(self, index, index_label):
+    def _index_name(self, index, index_label: str):
         # for writing: index=True to include index in sql table
         if index is True:
             nlevels = self.frame.index.nlevels
@@ -1401,12 +1401,12 @@ class PandasSQL(PandasObject, ABC):
     def to_sql(
         self,
         frame,
-        name,
+        name: str,
         if_exists: Literal["fail", "replace", "append"] = "fail",
         index: bool = True,
-        index_label=None,
+        index_label: str | None = None,
         schema=None,
-        chunksize=None,
+        chunksize: int | None = None,
         dtype: DtypeArg | None = None,
         method=None,
         engine: str = "auto",
@@ -1440,10 +1440,10 @@ class BaseEngine:
         table: SQLTable,
         con,
         frame,
-        name,
+        name: str,
         index: bool | str | list[str] | None = True,
         schema=None,
-        chunksize=None,
+        chunksize: int | None = None,
         method=None,
         **engine_kwargs,
     ) -> int | None:
@@ -1464,10 +1464,10 @@ class SQLAlchemyEngine(BaseEngine):
         table: SQLTable,
         con,
         frame,
-        name,
+        name: str,
         index: bool | str | list[str] | None = True,
         schema=None,
-        chunksize=None,
+        chunksize: int | None = None,
         method=None,
         **engine_kwargs,
     ) -> int | None:
@@ -1790,10 +1790,10 @@ class SQLDatabase(PandasSQL):
     def prep_table(
         self,
         frame,
-        name,
+        name: str,
         if_exists: Literal["fail", "replace", "append"] = "fail",
         index: bool | str | list[str] | None = True,
-        index_label=None,
+        index_label: str | None = None,
         schema=None,
         dtype: DtypeArg | None = None,
     ) -> SQLTable:
@@ -1870,9 +1870,9 @@ class SQLDatabase(PandasSQL):
         name: str,
         if_exists: Literal["fail", "replace", "append"] = "fail",
         index: bool = True,
-        index_label=None,
+        index_label: str | None = None,
         schema: str | None = None,
-        chunksize=None,
+        chunksize: int | None = None,
         dtype: DtypeArg | None = None,
         method=None,
         engine: str = "auto",
@@ -2018,7 +2018,7 @@ _SQL_TYPES = {
 }
 
 
-def _get_unicode_name(name):
+def _get_unicode_name(name: str):
     try:
         uname = str(name).encode("utf-8", "strict").decode("utf-8")
     except UnicodeError as err:
@@ -2026,7 +2026,7 @@ def _get_unicode_name(name):
     return uname
 
 
-def _get_valid_sqlite_name(name):
+def _get_valid_sqlite_name(name: str):
     # See https://stackoverflow.com/questions/6514274/how-do-you-escape-strings\
     # -for-sqlite-table-column-names-in-python
     # Ensure the string can be encoded as UTF-8.
@@ -2322,12 +2322,12 @@ class SQLiteDatabase(PandasSQL):
     def to_sql(
         self,
         frame,
-        name,
+        name: str,
         if_exists: str = "fail",
         index: bool = True,
-        index_label=None,
+        index_label: str | None = None,
         schema=None,
-        chunksize=None,
+        chunksize: int | None = None,
         dtype: DtypeArg | None = None,
         method=None,
         engine: str = "auto",

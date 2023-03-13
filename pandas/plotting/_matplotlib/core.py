@@ -127,7 +127,7 @@ class MPLPlot(ABC):
         sharex=None,
         sharey: bool = False,
         use_index: bool = True,
-        figsize=None,
+        figsize: int | None = None,
         grid=None,
         legend: bool | str = True,
         rot=None,
@@ -140,7 +140,7 @@ class MPLPlot(ABC):
         yticks=None,
         xlabel: Hashable | None = None,
         ylabel: Hashable | None = None,
-        fontsize=None,
+        fontsize: int | None = None,
         secondary_y: bool | tuple | list | np.ndarray = False,
         colormap=None,
         table: bool = False,
@@ -728,7 +728,9 @@ class MPLPlot(ABC):
                     raise ValueError(msg)
                 self.axes[0].set_title(self.title)
 
-    def _apply_axis_properties(self, axis: Axis, rot=None, fontsize=None) -> None:
+    def _apply_axis_properties(
+        self, axis: Axis, rot=None, fontsize: int | None = None
+    ) -> None:
         """
         Tick creation within matplotlib is reasonably expensive and is
         internally deferred until accessed as Ticks are created/destroyed
@@ -957,7 +959,7 @@ class MPLPlot(ABC):
         if isinstance(self.secondary_y, (tuple, list, np.ndarray, ABCIndex)):
             return self.data.columns[i] in self.secondary_y
 
-    def _apply_style_colors(self, colors, kwds, col_num, label):
+    def _apply_style_colors(self, colors, kwds, col_num, label: str):
         """
         Manage style and color based on column number and its label.
         Returns tuple of appropriate style and kwds which "color" may be added.
@@ -997,7 +999,7 @@ class MPLPlot(ABC):
             color=self.kwds.get(color_kwds),
         )
 
-    def _parse_errorbars(self, label, err):
+    def _parse_errorbars(self, label: str, err):
         """
         Look for error keyword arguments and return the actual errorbar data
         or return the error DataFrame/dict
@@ -1087,7 +1089,11 @@ class MPLPlot(ABC):
         return err
 
     def _get_errorbars(
-        self, label=None, index=None, xerr: bool = True, yerr: bool = True
+        self,
+        label: str | None = None,
+        index=None,
+        xerr: bool = True,
+        yerr: bool = True,
     ):
         errors = {}
 
@@ -1448,7 +1454,7 @@ class LinePlot(MPLPlot):
         ax._stacker_neg_prior[stacking_id] = np.zeros(n)
 
     @classmethod
-    def _get_stacked_values(cls, ax: Axes, stacking_id, values, label):
+    def _get_stacked_values(cls, ax: Axes, stacking_id, values, label: str):
         if stacking_id is None:
             return values
         if not hasattr(ax, "_stacker_pos_prior"):
@@ -1747,7 +1753,9 @@ class BarPlot(MPLPlot):
 
         self._decorate_ticks(ax, self._get_index_name(), str_index, s_edge, e_edge)
 
-    def _decorate_ticks(self, ax: Axes, name, ticklabels, start_edge, end_edge) -> None:
+    def _decorate_ticks(
+        self, ax: Axes, name: str, ticklabels: Sequence[str], start_edge, end_edge
+    ) -> None:
         ax.set_xlim((start_edge, end_edge))
 
         if self.xticks is not None:
@@ -1792,7 +1800,9 @@ class BarhPlot(BarPlot):
     def _get_custom_index_name(self):
         return self.ylabel
 
-    def _decorate_ticks(self, ax: Axes, name, ticklabels, start_edge, end_edge) -> None:
+    def _decorate_ticks(
+        self, ax: Axes, name: str, ticklabels: Sequence[str], start_edge, end_edge
+    ) -> None:
         # horizontal bars
         ax.set_ylim((start_edge, end_edge))
         ax.set_yticks(self.tick_pos)
@@ -1836,7 +1846,7 @@ class PiePlot(MPLPlot):
 
             kwds = self.kwds.copy()
 
-            def blank_labeler(label, value):
+            def blank_labeler(label: str, value):
                 if value == 0:
                     return ""
                 else:

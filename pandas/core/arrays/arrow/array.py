@@ -259,7 +259,7 @@ class ArrowExtensionArray(
 
     @classmethod
     def _from_sequence_of_strings(
-        cls, strings, *, dtype: Dtype | None = None, copy: bool = False
+        cls, strings: str, *, dtype: Dtype | None = None, copy: bool = False
     ):
         """
         Construct a new ExtensionArray from a sequence of strings.
@@ -1952,7 +1952,7 @@ class ArrowExtensionArray(
             "str.translate not supported with pd.ArrowDtype(pa.string())."
         )
 
-    def _str_wrap(self, width, **kwargs):
+    def _str_wrap(self, width: int, **kwargs):
         raise NotImplementedError(
             "str.wrap not supported with pd.ArrowDtype(pa.string())."
         )

@@ -68,7 +68,7 @@ LOCAL_TAG = "__pd_eval_local_"
 
 
 class Term:
-    def __new__(cls, name, env, side=None, encoding=None):
+    def __new__(cls, name: str, env, side=None, encoding=None):
         klass = Constant if not isinstance(name, str) else cls
         # error: Argument 2 for "super" not an instance of argument 1
         supr_new = super(Term, klass).__new__  # type: ignore[misc]
@@ -76,7 +76,7 @@ class Term:
 
     is_local: bool
 
-    def __init__(self, name, env, side=None, encoding=None) -> None:
+    def __init__(self, name: str, env, side=None, encoding=None) -> None:
         # name is a str for Term, but may be something else for subclasses
         self._name = name
         self.env = env

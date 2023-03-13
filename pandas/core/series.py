@@ -369,7 +369,7 @@ class Series(base.IndexOpsMixin, NDFrame):  # type: ignore[misc]
         data=None,
         index=None,
         dtype: Dtype | None = None,
-        name=None,
+        name: str | None = None,
         copy: bool = False,
         fastpath: bool = False,
     ) -> None:
@@ -1036,7 +1036,7 @@ class Series(base.IndexOpsMixin, NDFrame):  # type: ignore[misc]
         new_mgr = self._mgr.getitem_mgr(indexer)
         return self._constructor(new_mgr).__finalize__(self)
 
-    def _get_value(self, label, takeable: bool = False):
+    def _get_value(self, label: str, takeable: bool = False):
         """
         Quickly retrieve single value at passed index label.
 
@@ -1196,7 +1196,7 @@ class Series(base.IndexOpsMixin, NDFrame):  # type: ignore[misc]
         self._mgr = self._mgr.setitem(indexer=key, value=value)
         self._maybe_update_cacher()
 
-    def _set_value(self, label, value, takeable: bool = False) -> None:
+    def _set_value(self, label: str, value, takeable: bool = False) -> None:
         """
         Quickly set single value at passed label.
 
@@ -1569,9 +1569,9 @@ class Series(base.IndexOpsMixin, NDFrame):  # type: ignore[misc]
         float_format: str | None = ...,
         header: bool = ...,
         index: bool = ...,
-        length=...,
+        length: int = ...,
         dtype=...,
-        name=...,
+        name: str = ...,
         max_rows: int | None = ...,
         min_rows: int | None = ...,
     ) -> str:
@@ -1585,9 +1585,9 @@ class Series(base.IndexOpsMixin, NDFrame):  # type: ignore[misc]
         float_format: str | None = ...,
         header: bool = ...,
         index: bool = ...,
-        length=...,
+        length: int = ...,
         dtype=...,
-        name=...,
+        name: str = ...,
         max_rows: int | None = ...,
         min_rows: int | None = ...,
     ) -> None:
@@ -1870,7 +1870,7 @@ class Series(base.IndexOpsMixin, NDFrame):  # type: ignore[misc]
         df = self._constructor_expanddim(mgr)
         return df.__finalize__(self, method="to_frame")
 
-    def _set_name(self, name, inplace: bool = False) -> Series:
+    def _set_name(self, name: str, inplace: bool = False) -> Series:
         """
         Set the Series name.
 
@@ -4756,7 +4756,7 @@ Keep all original rows and also all original values
     @Appender(NDFrame.set_axis.__doc__)
     def set_axis(
         self,
-        labels,
+        labels: Sequence[str],
         *,
         axis: Axis = 0,
         copy: bool | None = None,
@@ -4779,7 +4779,7 @@ Keep all original rows and also all original values
         level: Level | None = None,
         fill_value: Scalar | None = None,
         limit: int | None = None,
-        tolerance=None,
+        tolerance: float | None = None,
     ) -> Series:
         return super().reindex(
             index=index,
@@ -5111,7 +5111,7 @@ Keep all original rows and also all original values
             show_counts=show_counts,
         )
 
-    def _replace_single(self, to_replace, method: str, inplace: bool, limit):
+    def _replace_single(self, to_replace, method: str, inplace: bool, limit: int):
         """
         Replaces values in a Series using the fill method specified when no
         replacement value is given in the replace method

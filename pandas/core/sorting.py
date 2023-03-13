@@ -111,7 +111,7 @@ def get_indexer_indexer(
 
 
 def get_group_index(
-    labels, shape: Shape, sort: bool, xnull: bool
+    labels: Sequence[str], shape: Shape, sort: bool, xnull: bool
 ) -> npt.NDArray[np.int64]:
     """
     For the particular label_list, gets the offsets into the hypothetical list
@@ -153,7 +153,7 @@ def get_group_index(
                 return i
         return len(shape)
 
-    def maybe_lift(lab, size) -> tuple[np.ndarray, int]:
+    def maybe_lift(lab, size: int) -> tuple[np.ndarray, int]:
         # promote nan values (assigned -1 label in lab array)
         # so that all output values are non-negative
         return (lab + 1, size + 1) if (lab == -1).any() else (lab, size)
@@ -205,7 +205,7 @@ def get_group_index(
 
 
 def get_compressed_ids(
-    labels, sizes: Shape
+    labels: Sequence[str], sizes: Shape
 ) -> tuple[npt.NDArray[np.intp], npt.NDArray[np.int64]]:
     """
     Group_index is offsets into cartesian product of all possible labels. This
@@ -292,7 +292,7 @@ def decons_obs_group_ids(
 
 
 def indexer_from_factorized(
-    labels, shape: Shape, compress: bool = True
+    labels: Sequence[str], shape: Shape, compress: bool = True
 ) -> npt.NDArray[np.intp]:
     ids = get_group_index(labels, shape, sort=True, xnull=False)
 

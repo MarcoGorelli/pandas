@@ -1286,7 +1286,7 @@ class _LocIndexer(_LocationIndexer):
 
         return self._getitem_tuple_same_dim(tup)
 
-    def _get_label(self, label, axis: AxisInt):
+    def _get_label(self, label: str, axis: AxisInt):
         # GH#5567 this will fail if the label is not present in the axis.
         return self.obj.xs(label, axis=axis)
 
@@ -2553,7 +2553,7 @@ def maybe_convert_ix(*args):
     return np.ix_(*args)
 
 
-def is_nested_tuple(tup, labels) -> bool:
+def is_nested_tuple(tup, labels: Sequence[str]) -> bool:
     """
     Returns
     -------

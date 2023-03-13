@@ -1,6 +1,7 @@
 from typing import (
     Hashable,
     Literal,
+    Sequence,
 )
 
 import numpy as np
@@ -31,7 +32,7 @@ class TextReader:
         header_start: int = ...,  # int64_t
         header_end: int = ...,  # uint64_t
         index_col=...,
-        names=...,
+        names: Sequence[str] = ...,
         tokenize_chunksize: int = ...,  # int64_t
         delim_whitespace: bool = ...,
         converters=...,
@@ -41,7 +42,7 @@ class TextReader:
         quotechar: str | bytes | None = ...,  # at most 1 character
         quoting: int = ...,
         lineterminator: bytes | str | None = ...,  # at most 1 character
-        comment=...,
+        comment: str = ...,
         decimal: bytes | str = ...,  # single-character only
         thousands: bytes | str | None = ...,  # single-character only
         dtype: Dtype | dict[Hashable, Dtype] = ...,

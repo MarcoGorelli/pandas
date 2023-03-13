@@ -261,7 +261,7 @@ class ExtensionArray:
 
     @classmethod
     def _from_sequence_of_strings(
-        cls, strings, *, dtype: Dtype | None = None, copy: bool = False
+        cls, strings: str, *, dtype: Dtype | None = None, copy: bool = False
     ):
         """
         Construct a new ExtensionArray from a sequence of strings.
@@ -1572,7 +1572,7 @@ class ExtensionArray:
         return result
 
     def _fill_mask_inplace(
-        self, method: str, limit, mask: npt.NDArray[np.bool_]
+        self, method: str, limit: int, mask: npt.NDArray[np.bool_]
     ) -> None:
         """
         Replace values in locations specified by 'mask' using pad or backfill.

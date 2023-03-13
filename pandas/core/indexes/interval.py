@@ -111,7 +111,7 @@ _index_doc_kwargs.update(
 )
 
 
-def _get_next_label(label):
+def _get_next_label(label: str):
     dtype = getattr(label, "dtype", type(label))
     if isinstance(label, (Timestamp, Timedelta)):
         dtype = "datetime64"
@@ -125,7 +125,7 @@ def _get_next_label(label):
         raise TypeError(f"cannot determine next label for type {repr(type(label))}")
 
 
-def _get_prev_label(label):
+def _get_prev_label(label: str):
     dtype = getattr(label, "dtype", type(label))
     if isinstance(label, (Timestamp, Timedelta)):
         dtype = "datetime64"
@@ -578,7 +578,9 @@ class IntervalIndex(ExtensionIndex):
 
         return key_i8
 
-    def _searchsorted_monotonic(self, label, side: Literal["left", "right"] = "left"):
+    def _searchsorted_monotonic(
+        self, label: str, side: Literal["left", "right"] = "left"
+    ):
         if not self.is_non_overlapping_monotonic:
             raise KeyError(
                 "can only get slices from an IntervalIndex if bounds are "
@@ -805,7 +807,7 @@ class IntervalIndex(ExtensionIndex):
         # ExtensionDtype]" has no attribute "subtype"
         return self.dtype.subtype.kind in ["m", "M"]  # type: ignore[union-attr]
 
-    def _maybe_cast_slice_bound(self, label, side: str):
+    def _maybe_cast_slice_bound(self, label: str, side: str):
         return getattr(self, side)._maybe_cast_slice_bound(label, side)
 
     def _is_comparable_dtype(self, dtype: DtypeObj) -> bool:
@@ -846,7 +848,7 @@ class IntervalIndex(ExtensionIndex):
         # GH 28210: use base method but with different default na_rep
         return super()._format_native_types(na_rep=na_rep, quoting=quoting, **kwargs)
 
-    def _format_data(self, name=None) -> str:
+    def _format_data(self, name: str | None = None) -> str:
         # TODO: integrate with categorical and make generic
         # name argument is unused here; just for compat with base / categorical
         return f"{self._data._format_data()},{self._format_space()}"

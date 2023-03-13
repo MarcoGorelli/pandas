@@ -145,7 +145,7 @@ class RangeIndex(Index):
 
     @classmethod
     def from_range(
-        cls, data: range, name=None, dtype: Dtype | None = None
+        cls, data: range, name: str | None = None, dtype: Dtype | None = None
     ) -> RangeIndex:
         """
         Create RangeIndex from a range object.
@@ -231,7 +231,7 @@ class RangeIndex(Index):
             attrs.append(("name", ibase.default_pprint(self.name)))
         return attrs
 
-    def _format_data(self, name=None):
+    def _format_data(self, name: str | None = None):
         # we are formatting thru the attributes
         return None
 
@@ -354,7 +354,7 @@ class RangeIndex(Index):
         target: Index,
         method: str | None = None,
         limit: int | None = None,
-        tolerance=None,
+        tolerance: float | None = None,
     ) -> npt.NDArray[np.intp]:
         if com.any_not_none(method, tolerance, limit):
             return super()._get_indexer(

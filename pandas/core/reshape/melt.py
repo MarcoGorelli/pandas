@@ -4,6 +4,7 @@ import re
 from typing import (
     TYPE_CHECKING,
     Hashable,
+    Sequence,
 )
 
 import numpy as np
@@ -40,7 +41,7 @@ def melt(
     frame: DataFrame,
     id_vars=None,
     value_vars=None,
-    var_name=None,
+    var_name: str | None = None,
     value_name: Hashable = "value",
     col_level=None,
     ignore_index: bool = True,
@@ -249,7 +250,7 @@ def lreshape(data: DataFrame, groups, dropna: bool = True) -> DataFrame:
 
 
 def wide_to_long(
-    df: DataFrame, stubnames, i, j, sep: str = "", suffix: str = r"\d+"
+    df: DataFrame, stubnames: Sequence[str], i, j, sep: str = "", suffix: str = r"\d+"
 ) -> DataFrame:
     r"""
     Unpivot a DataFrame from wide to long format.

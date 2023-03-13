@@ -134,7 +134,7 @@ class VariableOffsetWindowIndexer(BaseIndexer):
         index_array: np.ndarray | None = None,
         window_size: int = 0,
         index=None,
-        offset=None,
+        offset: int | None = None,
         **kwargs,
     ) -> None:
         super().__init__(index_array, window_size, **kwargs)

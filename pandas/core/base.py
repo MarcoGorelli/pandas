@@ -1390,7 +1390,7 @@ class IndexOpsMixin(OpsMixin):
 
         return self._construct_result(result, name=res_name)
 
-    def _construct_result(self, result, name):
+    def _construct_result(self, result, name: str):
         """
         Construct an appropriately-wrapped result from the ArrayLike result
         of an arithmetic-like operation.

@@ -519,7 +519,7 @@ def lexsorted_two_level_string_multiindex() -> MultiIndex:
 
 @pytest.fixture
 def multiindex_dataframe_random_data(
-    lexsorted_two_level_string_multiindex,
+    lexsorted_two_level_string_multiindex: str,
 ) -> DataFrame:
     """DataFrame with 2 level MultiIndex with random data"""
     index = lexsorted_two_level_string_multiindex

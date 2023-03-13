@@ -2493,10 +2493,10 @@ class CategoricalAccessor(PandasDelegate, PandasObject, NoNewAttributesMixin):
         if not is_categorical_dtype(data.dtype):
             raise AttributeError("Can only use .cat accessor with a 'category' dtype")
 
-    def _delegate_property_get(self, name):
+    def _delegate_property_get(self, name: str):
         return getattr(self._parent, name)
 
-    def _delegate_property_set(self, name, new_values):
+    def _delegate_property_set(self, name: str, new_values):
         return setattr(self._parent, name, new_values)
 
     @property
@@ -2508,7 +2508,7 @@ class CategoricalAccessor(PandasDelegate, PandasObject, NoNewAttributesMixin):
 
         return Series(self._parent.codes, index=self._index)
 
-    def _delegate_method(self, name, *args, **kwargs):
+    def _delegate_method(self, name: str, *args, **kwargs):
         from pandas import Series
 
         method = getattr(self._parent, name)

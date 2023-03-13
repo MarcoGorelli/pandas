@@ -146,7 +146,7 @@ class NumericDtype(BaseMaskedDtype):
         raise AbstractMethodError(cls)
 
 
-def _coerce_to_data_and_mask(values, mask, dtype, copy, dtype_cls, default_dtype):
+def _coerce_to_data_and_mask(values, mask, dtype, copy: bool, dtype_cls, default_dtype):
     checker = dtype_cls._checker
 
     inferred_type = None
@@ -282,7 +282,7 @@ class NumericArray(BaseMaskedArray):
 
     @classmethod
     def _from_sequence_of_strings(
-        cls: type[T], strings, *, dtype: Dtype | None = None, copy: bool = False
+        cls: type[T], strings: str, *, dtype: Dtype | None = None, copy: bool = False
     ) -> T:
         from pandas.core.tools.numeric import to_numeric
 

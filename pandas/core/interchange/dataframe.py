@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from collections import abc
-from typing import TYPE_CHECKING
+from typing import (
+    TYPE_CHECKING,
+    Sequence,
+)
 
 from pandas.core.interchange.column import PandasColumn
 from pandas.core.interchange.dataframe_protocol import DataFrame as DataFrameXchg
@@ -82,7 +85,7 @@ class PandasDataFrameXchg(DataFrameXchg):
             self._df.iloc[:, indices], self._nan_as_null, self._allow_copy
         )
 
-    def select_columns_by_name(self, names) -> PandasDataFrameXchg:
+    def select_columns_by_name(self, names: Sequence[str]) -> PandasDataFrameXchg:
         if not isinstance(names, abc.Sequence):
             raise ValueError("`names` is not a sequence")
         if not isinstance(names, list):
@@ -92,7 +95,7 @@ class PandasDataFrameXchg(DataFrameXchg):
             self._df.loc[:, names], self._nan_as_null, self._allow_copy
         )
 
-    def get_chunks(self, n_chunks=None):
+    def get_chunks(self, n_chunks: int | None = None):
         """
         Return an iterator yielding the chunks.
         """

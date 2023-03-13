@@ -405,7 +405,7 @@ class ParserBase:
         return index
 
     @final
-    def _get_complex_date_index(self, data, col_names):
+    def _get_complex_date_index(self, data, col_names: Sequence[str]):
         def _get_name(icol):
             if isinstance(icol, str):
                 return icol
@@ -930,7 +930,7 @@ class ParserBase:
             return {i for i, name in enumerate(names) if usecols(name)}
         return usecols
 
-    def _validate_usecols_names(self, usecols, names):
+    def _validate_usecols_names(self, usecols, names: Sequence[str]):
         """
         Validates that all usecols are present in a given
         list of names. If not, raise a ValueError that
@@ -1048,7 +1048,11 @@ class ParserBase:
         return index_names, columns, index_col
 
     def _get_empty_meta(
-        self, columns, index_col, index_names, dtype: DtypeArg | None = None
+        self,
+        columns,
+        index_col,
+        index_names: Sequence[str],
+        dtype: DtypeArg | None = None,
     ):
         columns = list(columns)
 
@@ -1195,7 +1199,7 @@ def _process_date_conversion(
     converter: Callable,
     parse_spec,
     index_col,
-    index_names,
+    index_names: Sequence[str],
     columns,
     keep_date_col: bool = False,
 ):

@@ -1136,7 +1136,7 @@ class DatetimeLikeArrayMixin(OpsMixin, NDArrayBackedExtensionArray):
         parr = PeriodArray(i8vals, freq=other.freq)
         return parr + self
 
-    def _add_offset(self, offset):
+    def _add_offset(self, offset: int):
         raise AbstractMethodError(self)
 
     def _add_timedeltalike_scalar(self, other):

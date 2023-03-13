@@ -312,7 +312,7 @@ def _convert_and_box_cache(
 
 
 def _return_parsed_timezone_results(
-    result: np.ndarray, timezones, utc: bool, name
+    result: np.ndarray, timezones, utc: bool, name: str
 ) -> Index:
     """
     Return results from array_strptime if a %z or %Z directive was passed.
@@ -469,7 +469,7 @@ def _convert_listlike_datetimes(
 
 def _array_strptime_with_fallback(
     arg,
-    name,
+    name: str,
     utc: bool,
     fmt: str,
     exact: bool,
@@ -485,7 +485,7 @@ def _array_strptime_with_fallback(
     return _box_as_indexlike(result, utc=utc, name=name)
 
 
-def _to_datetime_with_unit(arg, unit, name, utc: bool, errors: str) -> Index:
+def _to_datetime_with_unit(arg, unit, name: str, utc: bool, errors: str) -> Index:
     """
     to_datetime specalized to the case where a 'unit' is passed.
     """

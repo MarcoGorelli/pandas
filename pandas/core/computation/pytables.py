@@ -58,14 +58,14 @@ class PyTablesScope(_scope.Scope):
 class Term(ops.Term):
     env: PyTablesScope
 
-    def __new__(cls, name, env, side=None, encoding=None):
+    def __new__(cls, name: str, env, side=None, encoding=None):
         if isinstance(name, str):
             klass = cls
         else:
             klass = Constant
         return object.__new__(klass)
 
-    def __init__(self, name, env: PyTablesScope, side=None, encoding=None) -> None:
+    def __init__(self, name: str, env: PyTablesScope, side=None, encoding=None) -> None:
         super().__init__(name, env, side=side, encoding=encoding)
 
     def _resolve_name(self):

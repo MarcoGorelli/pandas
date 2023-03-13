@@ -465,7 +465,7 @@ class Index(IndexOpsMixin, PandasObject):
         data=None,
         dtype=None,
         copy: bool = False,
-        name=None,
+        name: str | None = None,
         tupleize_cols: bool = True,
     ) -> Index:
         from pandas.core.indexes.range import RangeIndex
@@ -1235,7 +1235,7 @@ class Index(IndexOpsMixin, PandasObject):
         """
         return default_pprint
 
-    def _format_data(self, name=None) -> str_t:
+    def _format_data(self, name: str | None = None) -> str_t:
         """
         Return the formatted data as a unicode string.
         """
@@ -1372,7 +1372,7 @@ class Index(IndexOpsMixin, PandasObject):
         values[mask] = na_rep
         return values
 
-    def _summary(self, name=None) -> str_t:
+    def _summary(self, name: str | None = None) -> str_t:
         """
         Return a summarized representation.
 
@@ -1576,7 +1576,10 @@ class Index(IndexOpsMixin, PandasObject):
 
     @final
     def _validate_names(
-        self, name=None, names=None, deep: bool = False
+        self,
+        name: str | None = None,
+        names: Sequence[str] | None = None,
+        deep: bool = False,
     ) -> list[Hashable]:
         """
         Handles the quirks of having a singular 'name' parameter for general
@@ -1676,22 +1679,24 @@ class Index(IndexOpsMixin, PandasObject):
 
     @overload
     def set_names(
-        self: _IndexT, names, *, level=..., inplace: Literal[False] = ...
+        self: _IndexT, names: Sequence[str], *, level=..., inplace: Literal[False] = ...
     ) -> _IndexT:
         ...
 
     @overload
-    def set_names(self, names, *, level=..., inplace: Literal[True]) -> None:
+    def set_names(
+        self, names: Sequence[str], *, level=..., inplace: Literal[True]
+    ) -> None:
         ...
 
     @overload
     def set_names(
-        self: _IndexT, names, *, level=..., inplace: bool = ...
+        self: _IndexT, names: Sequence[str], *, level=..., inplace: bool = ...
     ) -> _IndexT | None:
         ...
 
     def set_names(
-        self: _IndexT, names, *, level=None, inplace: bool = False
+        self: _IndexT, names: Sequence[str], *, level=None, inplace: bool = False
     ) -> _IndexT | None:
         """
         Set Index or MultiIndex name.
@@ -1797,7 +1802,7 @@ class Index(IndexOpsMixin, PandasObject):
             return idx
         return None
 
-    def rename(self, name, inplace: bool = False):
+    def rename(self, name: str, inplace: bool = False):
         """
         Alter Index or MultiIndex name.
 
@@ -3511,7 +3516,7 @@ class Index(IndexOpsMixin, PandasObject):
         # We will override for MultiIndex to handle empty results
         return self._wrap_setop_result(other, result)
 
-    def symmetric_difference(self, other, result_name=None, sort=None):
+    def symmetric_difference(self, other, result_name: str | None = None, sort=None):
         """
         Compute the symmetric difference of two Index objects.
 
@@ -3707,7 +3712,7 @@ class Index(IndexOpsMixin, PandasObject):
         target,
         method: str_t | None = None,
         limit: int | None = None,
-        tolerance=None,
+        tolerance: float | None = None,
     ) -> npt.NDArray[np.intp]:
         method = clean_reindex_fill_method(method)
         orig_target = target
@@ -3793,7 +3798,7 @@ class Index(IndexOpsMixin, PandasObject):
         target: Index,
         method: str_t | None = None,
         limit: int | None = None,
-        tolerance=None,
+        tolerance: float | None = None,
     ) -> npt.NDArray[np.intp]:
         if tolerance is not None:
             tolerance = self._convert_tolerance(tolerance, target)
@@ -3838,7 +3843,7 @@ class Index(IndexOpsMixin, PandasObject):
         self,
         method: str_t | None,
         limit: int | None = None,
-        tolerance=None,
+        tolerance: float | None = None,
     ) -> None:
         """
         Raise if we have a get_indexer `method` that is not supported or valid.
@@ -3879,7 +3884,9 @@ class Index(IndexOpsMixin, PandasObject):
                     "backfill or nearest reindexing"
                 )
 
-    def _convert_tolerance(self, tolerance, target: np.ndarray | Index) -> np.ndarray:
+    def _convert_tolerance(
+        self, tolerance: float, target: np.ndarray | Index
+    ) -> np.ndarray:
         # override this method on subclasses
         tolerance = np.asarray(tolerance)
         if target.size != tolerance.size and tolerance.size > 1:
@@ -3899,7 +3906,11 @@ class Index(IndexOpsMixin, PandasObject):
 
     @final
     def _get_fill_indexer(
-        self, target: Index, method: str_t, limit: int | None = None, tolerance=None
+        self,
+        target: Index,
+        method: str_t,
+        limit: int | None = None,
+        tolerance: float | None = None,
     ) -> npt.NDArray[np.intp]:
         if self._is_multi:
             # TODO: get_indexer_with_fill docstring says values must be _sorted_
@@ -3971,7 +3982,7 @@ class Index(IndexOpsMixin, PandasObject):
 
     @final
     def _get_nearest_indexer(
-        self, target: Index, limit: int | None, tolerance
+        self, target: Index, limit: int | None, tolerance: float
     ) -> npt.NDArray[np.intp]:
         """
         Get the indexer for the nearest index labels; requires an index with
@@ -4006,7 +4017,7 @@ class Index(IndexOpsMixin, PandasObject):
         self,
         target: Index,
         indexer: npt.NDArray[np.intp],
-        tolerance,
+        tolerance: float,
     ) -> npt.NDArray[np.intp]:
         distance = self._difference_compat(target, indexer)
 
@@ -4159,7 +4170,12 @@ class Index(IndexOpsMixin, PandasObject):
             raise ValueError("cannot reindex on an axis with duplicate labels")
 
     def reindex(
-        self, target, method=None, level=None, limit=None, tolerance=None
+        self,
+        target,
+        method=None,
+        level=None,
+        limit: int | None = None,
+        tolerance: float | None = None,
     ) -> tuple[Index, npt.NDArray[np.intp] | None]:
         """
         Create index with target's values.
@@ -5198,7 +5214,7 @@ class Index(IndexOpsMixin, PandasObject):
         return result
 
     @final
-    def _can_hold_identifiers_and_holds_name(self, name) -> bool:
+    def _can_hold_identifiers_and_holds_name(self, name: str) -> bool:
         """
         Faster check for ``name in self`` when we know `name` is a Python
         identifier (e.g. in NDFrame.__getattr__, which hits this to support
@@ -5408,7 +5424,7 @@ class Index(IndexOpsMixin, PandasObject):
         )
 
     @final
-    def asof(self, label):
+    def asof(self, label: str):
         """
         Return the label from the index, or, if not present, the previous one.
 
@@ -6361,7 +6377,7 @@ class Index(IndexOpsMixin, PandasObject):
         if key is not None and not is_integer(key):
             self._raise_invalid_indexer(form, key)
 
-    def _maybe_cast_slice_bound(self, label, side: str_t):
+    def _maybe_cast_slice_bound(self, label: str, side: str_t):
         """
         This function should be overloaded in subclasses that allow non-trivial
         casting on label-slice bounds, e.g. datetime-like indices allowing
@@ -6393,7 +6409,9 @@ class Index(IndexOpsMixin, PandasObject):
 
         return label
 
-    def _searchsorted_monotonic(self, label, side: Literal["left", "right"] = "left"):
+    def _searchsorted_monotonic(
+        self, label: str, side: Literal["left", "right"] = "left"
+    ):
         if self.is_monotonic_increasing:
             return self.searchsorted(label, side=side)
         elif self.is_monotonic_decreasing:
@@ -6407,7 +6425,7 @@ class Index(IndexOpsMixin, PandasObject):
 
         raise ValueError("index must be monotonic increasing or decreasing")
 
-    def get_slice_bound(self, label, side: Literal["left", "right"]) -> int:
+    def get_slice_bound(self, label: str, side: Literal["left", "right"]) -> int:
         """
         Calculate slice bound that corresponds to given label.
 
@@ -6777,7 +6795,7 @@ class Index(IndexOpsMixin, PandasObject):
         return self._construct_result(res_values, name=res_name)
 
     @final
-    def _construct_result(self, result, name):
+    def _construct_result(self, result, name: str):
         if isinstance(result, tuple):
             return (
                 Index(result[0], name=name, dtype=result[0].dtype),
@@ -7011,7 +7029,7 @@ class Index(IndexOpsMixin, PandasObject):
         return (len(self),)
 
 
-def ensure_index_from_sequences(sequences, names=None) -> Index:
+def ensure_index_from_sequences(sequences, names: Sequence[str] | None = None) -> Index:
     """
     Construct an index from sequences of data.
 
@@ -7146,7 +7164,7 @@ def _validate_join_method(method: str) -> None:
         raise ValueError(f"do not recognize join method {method}")
 
 
-def maybe_extract_name(name, obj, cls) -> Hashable:
+def maybe_extract_name(name: str, obj, cls) -> Hashable:
     """
     If no name is passed, then extract it from data, validating hashability.
     """

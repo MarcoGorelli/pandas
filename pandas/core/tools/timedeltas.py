@@ -233,7 +233,7 @@ def _coerce_scalar_to_timedelta_type(
 
 
 def _convert_listlike(
-    arg, unit=None, errors: DateTimeErrorChoices = "raise", name=None
+    arg, unit=None, errors: DateTimeErrorChoices = "raise", name: str | None = None
 ):
     """Convert a list of objects to a timedelta index object."""
     if isinstance(arg, (list, tuple)) or not hasattr(arg, "dtype"):

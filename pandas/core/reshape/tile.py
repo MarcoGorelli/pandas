@@ -8,6 +8,7 @@ from typing import (
     Any,
     Callable,
     Literal,
+    Sequence,
 )
 
 import numpy as np
@@ -54,7 +55,7 @@ def cut(
     x,
     bins,
     right: bool = True,
-    labels=None,
+    labels: Sequence[str] | None = None,
     retbins: bool = False,
     precision: int = 3,
     include_lowest: bool = False,
@@ -311,7 +312,7 @@ def cut(
 def qcut(
     x,
     q,
-    labels=None,
+    labels: Sequence[str] | None = None,
     retbins: bool = False,
     precision: int = 3,
     duplicates: str = "raise",
@@ -396,7 +397,7 @@ def _bins_to_cuts(
     x,
     bins: np.ndarray,
     right: bool = True,
-    labels=None,
+    labels: Sequence[str] | None = None,
     precision: int = 3,
     include_lowest: bool = False,
     dtype=None,

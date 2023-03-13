@@ -363,7 +363,7 @@ class PeriodIndex(DatetimeIndexOpsMixin):
     # ------------------------------------------------------------------------
     # Indexing Methods
 
-    def _convert_tolerance(self, tolerance, target):
+    def _convert_tolerance(self, tolerance: float, target):
         # Returned tolerance must be in dtype/units so that
         #  `|self._get_engine_target() - target._engine_target()| <= tolerance`
         #  is meaningful.  Since PeriodIndex returns int64 for engine_target,
@@ -462,7 +462,7 @@ class PeriodIndex(DatetimeIndexOpsMixin):
         return period
 
     @doc(DatetimeIndexOpsMixin._maybe_cast_slice_bound)
-    def _maybe_cast_slice_bound(self, label, side: str):
+    def _maybe_cast_slice_bound(self, label: str, side: str):
         if isinstance(label, datetime):
             label = self._cast_partial_indexing_scalar(label)
 
@@ -482,7 +482,11 @@ class PeriodIndex(DatetimeIndexOpsMixin):
 
 
 def period_range(
-    start=None, end=None, periods: int | None = None, freq=None, name=None
+    start=None,
+    end=None,
+    periods: int | None = None,
+    freq=None,
+    name: str | None = None,
 ) -> PeriodIndex:
     """
     Return a fixed frequency PeriodIndex.

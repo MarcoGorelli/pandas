@@ -364,7 +364,7 @@ def merge_asof(
     left_by=None,
     right_by=None,
     suffixes: Suffixes = ("_x", "_y"),
-    tolerance=None,
+    tolerance: float | None = None,
     allow_exact_matches: bool = True,
     direction: str = "backward",
 ) -> DataFrame:
@@ -1673,7 +1673,7 @@ def get_join_indexers(
 def restore_dropped_levels_multijoin(
     left: MultiIndex,
     right: MultiIndex,
-    dropped_level_names,
+    dropped_level_names: Sequence[str],
     join_index: Index,
     lindexer: npt.NDArray[np.intp],
     rindexer: npt.NDArray[np.intp],
@@ -1864,7 +1864,7 @@ class _AsOfMerge(_OrderedMerge):
         copy: bool = True,
         fill_method: str | None = None,
         how: Literal["asof"] = "asof",
-        tolerance=None,
+        tolerance: float | None = None,
         allow_exact_matches: bool = True,
         direction: str = "backward",
     ) -> None:
@@ -2504,7 +2504,7 @@ def _get_join_keys(
     return _get_join_keys(llab, rlab, shape, sort)
 
 
-def _should_fill(lname, rname) -> bool:
+def _should_fill(lname: str, rname: str) -> bool:
     if not isinstance(lname, str) or not isinstance(rname, str):
         return True
     return lname == rname
@@ -2553,7 +2553,7 @@ def _items_overlap_with_suffix(
     if not lsuffix and not rsuffix:
         raise ValueError(f"columns overlap but no suffix specified: {to_rename}")
 
-    def renamer(x, suffix):
+    def renamer(x, suffix: str):
         """
         Rename the left and right indices.
 

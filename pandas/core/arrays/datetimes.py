@@ -113,7 +113,7 @@ def tz_to_dtype(tz: tzinfo | None, unit: str = "ns"):
         return DatetimeTZDtype(tz=tz, unit=unit)
 
 
-def _field_accessor(name: str, field: str, docstring=None):
+def _field_accessor(name: str, field: str, docstring: str | None = None):
     def f(self):
         values = self._local_timestamps()
 
@@ -753,7 +753,7 @@ class DatetimeArray(dtl.TimelikeOps, dtl.DatelikeOps):
     # -----------------------------------------------------------------
     # Arithmetic Methods
 
-    def _add_offset(self, offset) -> DatetimeArray:
+    def _add_offset(self, offset: int) -> DatetimeArray:
         assert not isinstance(offset, Tick)
 
         if self.tz is not None:
@@ -2454,7 +2454,9 @@ def _maybe_normalize_endpoints(
     return start, end
 
 
-def _maybe_localize_point(ts, is_none, is_not_none, freq, tz, ambiguous, nonexistent):
+def _maybe_localize_point(
+    ts, is_none: bool, is_not_none: bool, freq, tz, ambiguous, nonexistent
+):
     """
     Localize a start or end Timestamp to the timezone of the corresponding
     start or end Timestamp
