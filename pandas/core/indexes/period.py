@@ -152,6 +152,7 @@ class PeriodIndex(DatetimeIndexOpsMixin):
     _data: PeriodArray
     freq: BaseOffset
     dtype: PeriodDtype
+    is_period: bool
 
     _data_cls = PeriodArray
     _supports_partial_string_indexing = True
@@ -210,6 +211,7 @@ class PeriodIndex(DatetimeIndexOpsMixin):
         dtype: Dtype | None = None,
         copy: bool = False,
         name: Hashable = None,
+        is_period: bool = True,
         **fields,
     ) -> PeriodIndex:
         valid_field_set = {
@@ -245,7 +247,7 @@ class PeriodIndex(DatetimeIndexOpsMixin):
 
             data = PeriodArray(data, freq=freq)
         else:
-            freq = validate_dtype_freq(dtype, freq)
+            freq = validate_dtype_freq(dtype, freq, is_period)
 
             # PeriodIndex allow PeriodIndex(period_index, freq=different)
             # Let's not encourage that kind of behavior in PeriodArray.

@@ -2542,6 +2542,12 @@ cdef class MonthOffset(SingleConstructorOffset):
         BaseOffset.__setstate__(self, state)
 
 
+cdef class Month(MonthOffset):
+    _period_dtype_code = PeriodDtypeCode.M
+    _prefix = "M"
+    _day_opt = "end"
+
+
 cdef class MonthEnd(MonthOffset):
     """
     DateOffset of one month end.
@@ -4070,6 +4076,7 @@ prefix_mapping = {
         CustomBusinessMonthEnd,  # 'CBM'
         CustomBusinessMonthBegin,  # 'CBMS'
         CustomBusinessHour,  # 'CBH'
+        Month,  # 'M'
         MonthEnd,  # 'ME'
         MonthBegin,  # 'MS'
         Nano,  # 'N'
@@ -4156,7 +4163,7 @@ def _get_offset(name: str) -> BaseOffset:
     return _offset_map[name]
 
 
-cpdef to_offset(freq):
+cpdef to_offset(freq, is_period=False):
     """
     Return DateOffset object from string or datetime.timedelta object.
 
@@ -4224,7 +4231,7 @@ cpdef to_offset(freq):
 
             tups = zip(split[0::4], split[1::4], split[2::4])
             for n, (sep, stride, name) in enumerate(tups):
-                if name == "M":
+                if name == "M" and not is_period:
                     warnings.warn(
                         r"\'M\' will be deprecated, please use \'ME\' "
                         "for \'month end\'",

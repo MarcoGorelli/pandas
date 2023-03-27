@@ -208,9 +208,14 @@ class PeriodArray(dtl.DatelikeOps, libperiod.PeriodMixin):
     # Constructors
 
     def __init__(
-        self, values, dtype: Dtype | None = None, freq=None, copy: bool = False
+        self,
+        values,
+        dtype: Dtype | None = None,
+        freq=None,
+        copy: bool = False,
+        is_period: bool = True,
     ) -> None:
-        freq = validate_dtype_freq(dtype, freq)
+        freq = validate_dtype_freq(dtype, freq, is_period)
 
         if freq is not None:
             freq = Period._maybe_convert_freq(freq)
@@ -260,7 +265,7 @@ class PeriodArray(dtl.DatelikeOps, libperiod.PeriodMixin):
             freq = None
 
         if isinstance(scalars, cls):
-            validate_dtype_freq(scalars.dtype, freq)
+            validate_dtype_freq(scalars.dtype, freq, True)
             if copy:
                 scalars = scalars.copy()
             return scalars
@@ -938,7 +943,7 @@ def validate_dtype_freq(dtype, freq: timedelta | str | None) -> BaseOffset:
 
 
 def validate_dtype_freq(
-    dtype, freq: BaseOffsetT | timedelta | str | None
+    dtype, freq: BaseOffsetT | timedelta | str | None, is_period: bool | False
 ) -> BaseOffsetT:
     """
     If both a dtype and a freq are available, ensure they match.  If only
@@ -962,7 +967,7 @@ def validate_dtype_freq(
         # error: Incompatible types in assignment (expression has type
         # "BaseOffset", variable has type "Union[BaseOffsetT, timedelta,
         # str, None]")
-        freq = to_offset(freq)  # type: ignore[assignment]
+        freq = to_offset(freq, is_period)  # type: ignore[assignment]
 
     if dtype is not None:
         dtype = pandas_dtype(dtype)
