@@ -1805,7 +1805,7 @@ class TimelikeOps(DatetimeLikeArrayMixin):
             elif freq is None:
                 freq = values.freq
             elif freq and values.freq:
-                freq = to_offset(freq)
+                freq = to_offset(freq, False)
                 freq, _ = validate_inferred_freq(freq, values.freq, False)
 
             if dtype is not None:
@@ -1848,7 +1848,7 @@ class TimelikeOps(DatetimeLikeArrayMixin):
         if copy:
             values = values.copy()
         if freq:
-            freq = to_offset(freq)
+            freq = to_offset(freq, False)
             if values.dtype.kind == "m" and not isinstance(freq, Tick):
                 raise TypeError("TimedeltaArray/Index freq must be a Tick")
 
@@ -2073,7 +2073,7 @@ class TimelikeOps(DatetimeLikeArrayMixin):
         else:
             # As an internal method, we can ensure this assertion always holds
             assert freq == "infer"
-            freq = to_offset(self.inferred_freq)
+            freq = to_offset(self.inferred_freq, False)
 
         arr = self.view()
         arr._freq = freq
@@ -2226,7 +2226,7 @@ def maybe_infer_freq(freq):
     if not isinstance(freq, BaseOffset):
         # if a passed freq is None, don't infer automatically
         if freq != "infer":
-            freq = to_offset(freq)
+            freq = to_offset(freq, False)
         else:
             freq_infer = True
             freq = None

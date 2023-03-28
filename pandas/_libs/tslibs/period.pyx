@@ -1470,7 +1470,7 @@ def from_ordinals(const int64_t[:] values, freq):
         int64_t[::1] result = np.empty(len(values), dtype="i8")
         int64_t val
 
-    freq = to_offset(freq)
+    freq = to_offset(freq, True)
     if not isinstance(freq, BaseOffset):
         raise ValueError("freq not specified and cannot be inferred")
 
@@ -1637,9 +1637,14 @@ cdef class PeriodMixin:
             other_freq = other
         else:
             other_freq = other.freq
+        
+        self_base = self.freq.base
+        other_base = other_freq.base
+        if self_base == 'M':
+            self_base = 'ME'
 
         if base:
-            condition = self.freq.base != other_freq.base
+            condition = self_base != other_base
         else:
             condition = self.freq != other_freq
 
@@ -1689,7 +1694,10 @@ cdef class _Period(PeriodMixin):
             dtype = PeriodDtypeBase(freq)
             freq = dtype._freqstr
 
-        freq = to_offset(freq)
+        if isinstance(freq, str) and freq == 'M':
+            freq = to_offset('ME', True)
+        else:
+            freq = to_offset(freq, True)
 
         if freq.n <= 0:
             raise ValueError("Frequency must be positive, because it "
@@ -2672,7 +2680,7 @@ class Period(_Period):
                 if freq is None and ordinal != NPY_NAT:
                     # Skip NaT, since it doesn't have a resolution
                     freq = attrname_to_abbrevs[reso]
-                    freq = to_offset(freq)
+                    freq = to_offset(freq, True)
 
         elif PyDateTime_Check(value):
             dt = value
@@ -2753,7 +2761,7 @@ cdef _parse_weekly_str(value, BaseOffset freq):
     if freq is None:
         day_name = end.day_name()[:3].upper()
         freqstr = f"W-{day_name}"
-        freq = to_offset(freqstr)
+        freq = to_offset(freqstr, True)
         # We _should_ have freq.is_on_offset(end)
 
     return end, freq

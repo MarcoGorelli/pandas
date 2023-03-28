@@ -10305,7 +10305,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
                 raise ValueError(msg)
 
         elif isinstance(freq, str):
-            freq = to_offset(freq)
+            freq = to_offset(freq, False)
 
         if isinstance(index, PeriodIndex):
             orig_freq = to_offset(index.freq)

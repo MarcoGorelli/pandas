@@ -449,7 +449,7 @@ class DatetimeTimedeltaMixin(DatetimeIndexOpsMixin, ABC):
     def shift(self, periods: int = 1, freq=None) -> Self:
         if freq is not None and freq != self.freq:
             if isinstance(freq, str):
-                freq = to_offset(freq)
+                freq = to_offset(freq, False)
             offset = periods * freq
             return self + offset
 

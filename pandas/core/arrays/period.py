@@ -1030,7 +1030,7 @@ def _get_ordinal_range(start, end, periods, freq, mult: int = 1):
         )
 
     if freq is not None:
-        freq = to_offset(freq)
+        freq = to_offset(freq, True)
         mult = freq.n
 
     if start is not None:
@@ -1096,7 +1096,7 @@ def _range_from_fields(
             freq = to_offset("Q")
             base = FreqGroup.FR_QTR.value
         else:
-            freq = to_offset(freq)
+            freq = to_offset(freq, True)
             base = libperiod.freq_to_dtype_code(freq)
             if base != FreqGroup.FR_QTR.value:
                 raise AssertionError("base must equal FR_QTR")
@@ -1108,7 +1108,7 @@ def _range_from_fields(
             val = libperiod.period_ordinal(y, m, 1, 1, 1, 1, 0, 0, base)
             ordinals.append(val)
     else:
-        freq = to_offset(freq)
+        freq = to_offset(freq, True)
         base = libperiod.freq_to_dtype_code(freq)
         arrays = _make_field_arrays(year, month, day, hour, minute, second)
         for y, mth, d, h, mn, s in zip(*arrays):

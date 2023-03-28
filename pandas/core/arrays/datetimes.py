@@ -396,7 +396,7 @@ class DatetimeArray(dtl.TimelikeOps, dtl.DatelikeOps):
                 "Of the four parameters: start, end, periods, "
                 "and freq, exactly three must be specified"
             )
-        freq = to_offset(freq)
+        freq = to_offset(freq, False)
 
         if start is not None:
             start = Timestamp(start)
@@ -2519,7 +2519,7 @@ def _generate_range(
     -------
     dates : generator object
     """
-    offset = to_offset(offset)
+    offset = to_offset(offset, False)
 
     # Argument 1 to "Timestamp" has incompatible type "Optional[Timestamp]";
     # expected "Union[integer[Any], float, str, date, datetime64]"

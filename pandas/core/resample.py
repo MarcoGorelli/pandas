@@ -1597,7 +1597,7 @@ class TimeGrouper(Grouper):
         if convention not in {None, "start", "end", "e", "s"}:
             raise ValueError(f"Unsupported value {convention} for `convention`")
 
-        freq = to_offset(freq)
+        freq = to_offset(freq, False)
 
         end_types = {"M", "A", "Q", "BM", "BA", "BQ", "W"}
         rule = freq.rule_code

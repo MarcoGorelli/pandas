@@ -454,7 +454,7 @@ class DatetimeIndex(DatetimeTimedeltaMixin):
         DatetimeIndex
         """
         # Superdumb, punting on any optimizing
-        freq = to_offset(freq)
+        freq = to_offset(freq, False)
 
         dta = self._data.copy()
 

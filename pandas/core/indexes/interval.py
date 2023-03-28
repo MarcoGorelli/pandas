@@ -1090,7 +1090,7 @@ def interval_range(
 
     if freq is not None and not is_number(freq):
         try:
-            freq = to_offset(freq)
+            freq = to_offset(freq, False)
         except ValueError as err:
             raise ValueError(
                 f"freq must be numeric or convertible to DateOffset, got {freq}"

@@ -410,7 +410,7 @@ cdef class BaseOffset:
             try:
                 # GH#23524 if to_offset fails, we are dealing with an
                 #  incomparable type so == is False and != is True
-                other = to_offset(other)
+                other = to_offset(other, False)
             except ValueError:
                 # e.g. "infer"
                 return False
@@ -990,7 +990,7 @@ cdef class Tick(SingleConstructorOffset):
             try:
                 # GH#23524 if to_offset fails, we are dealing with an
                 #  incomparable type so == is False and != is True
-                other = to_offset(other)
+                other = to_offset(other, False)
             except ValueError:
                 # e.g. "infer"
                 return False
@@ -2542,12 +2542,6 @@ cdef class MonthOffset(SingleConstructorOffset):
         BaseOffset.__setstate__(self, state)
 
 
-cdef class Month(MonthOffset):
-    _period_dtype_code = PeriodDtypeCode.M
-    _prefix = "M"
-    _day_opt = "end"
-
-
 cdef class MonthEnd(MonthOffset):
     """
     DateOffset of one month end.
@@ -4070,7 +4064,6 @@ prefix_mapping = {
         CustomBusinessMonthEnd,  # 'CBM'
         CustomBusinessMonthBegin,  # 'CBMS'
         CustomBusinessHour,  # 'CBH'
-        Month,  # 'M'
         MonthEnd,  # 'ME'
         MonthBegin,  # 'MS'
         Nano,  # 'N'
@@ -4157,7 +4150,7 @@ def _get_offset(name: str) -> BaseOffset:
     return _offset_map[name]
 
 
-cpdef to_offset(freq, is_period=False):
+cpdef to_offset(freq, is_period):
     """
     Return DateOffset object from string or datetime.timedelta object.
 

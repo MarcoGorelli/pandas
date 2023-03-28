@@ -77,7 +77,7 @@ class PeriodConstructor:
 
     def setup(self, freq, is_offset):
         if is_offset:
-            self.freq = to_offset(freq)
+            self.freq = to_offset(freq, True)
         else:
             self.freq = freq
 
