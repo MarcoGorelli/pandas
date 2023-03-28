@@ -1640,7 +1640,7 @@ cdef class PeriodMixin:
         
         self_base = self.freq.base
         other_base = other_freq.base
-        if self_base == 'M':
+        if isinstance(self_base, str) and self_base == 'M':
             self_base = 'ME'
 
         if base:

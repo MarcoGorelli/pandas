@@ -4218,12 +4218,13 @@ cpdef to_offset(freq, is_period):
 
             tups = zip(split[0::4], split[1::4], split[2::4])
             for n, (sep, stride, name) in enumerate(tups):
-                if name == "M" and not is_period:
-                    warnings.warn(
-                        r"\'M\' will be deprecated, please use \'ME\' "
-                        "for \'month end\'",
-                        UserWarning,
-                    )
+                if name == "M":
+                    if not is_period:
+                        warnings.warn(
+                            r"\'M\' will be deprecated, please use \'ME\' "
+                            "for \'month end\'",
+                            UserWarning,
+                        )
                     name = "ME"
                 if sep != "" and not sep.isspace():
                     raise ValueError("separator must be spaces")
