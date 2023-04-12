@@ -9,6 +9,7 @@ from pandas.core.dtypes.common import (
 )
 
 from pandas import (
+    NA,
     Period,
     Series,
     Timedelta,
@@ -38,7 +39,6 @@ class TestSeriesDescribe:
         tm.assert_series_equal(result, expected)
 
     def test_describe_strs(self):
-
         ser = Series(["a", "a", "b", "c", "d"], name="str_data")
         result = ser.describe()
         expected = Series(
@@ -186,5 +186,17 @@ class TestSeriesDescribe:
             ],
             index=["count", "mean", "std", "min", "25%", "50%", "75%", "max"],
             dtype=dtype,
+        )
+        tm.assert_series_equal(result, expected)
+
+    def test_describe_one_element_ea(self):
+        # GH#52515
+        ser = Series([0.0], dtype="Float64")
+        with tm.assert_produces_warning(None):
+            result = ser.describe()
+        expected = Series(
+            [1, 0, NA, 0, 0, 0, 0, 0],
+            dtype="Float64",
+            index=["count", "mean", "std", "min", "25%", "50%", "75%", "max"],
         )
         tm.assert_series_equal(result, expected)

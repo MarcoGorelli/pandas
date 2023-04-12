@@ -7,7 +7,6 @@ import pandas.util._test_decorators as td
 
 from pandas.core.dtypes.base import _registry as ea_registry
 from pandas.core.dtypes.common import (
-    is_categorical_dtype,
     is_interval_dtype,
     is_object_dtype,
 )
@@ -61,7 +60,8 @@ class TestDataFrameSetItem:
         "dtype", ["int32", "int64", "uint32", "uint64", "float32", "float64"]
     )
     def test_setitem_dtype(self, dtype, float_frame):
-        arr = np.random.randn(len(float_frame))
+        # Use randint since casting negative floats to uints is undefined
+        arr = np.random.randint(1, 10, len(float_frame))
 
         float_frame[dtype] = np.array(arr, dtype=dtype)
         assert float_frame[dtype].dtype.name == dtype
@@ -72,7 +72,6 @@ class TestDataFrameSetItem:
         tm.assert_almost_equal(float_frame[["A", "B"]].values, data)
 
     def test_setitem_error_msmgs(self):
-
         # GH 7432
         df = DataFrame(
             {"bar": [1, 2, 3], "baz": ["d", "e", "f"]},
@@ -321,7 +320,6 @@ class TestDataFrameSetItem:
         assert (df["dates"].values == ex_vals).all()
 
     def test_setitem_dt64tz(self, timezone_frame):
-
         df = timezone_frame
         idx = df["B"].rename("foo")
 
@@ -472,7 +470,6 @@ class TestDataFrameSetItem:
             df[["a", "b"]] = rhs
 
     def test_setitem_intervals(self):
-
         df = DataFrame({"A": range(10)})
         ser = cut(df["A"], 5)
         assert isinstance(ser.cat.categories, IntervalIndex)
@@ -486,9 +483,9 @@ class TestDataFrameSetItem:
         df["E"] = np.array(ser.values)
         df["F"] = ser.astype(object)
 
-        assert is_categorical_dtype(df["B"].dtype)
+        assert isinstance(df["B"].dtype, CategoricalDtype)
         assert is_interval_dtype(df["B"].cat.categories)
-        assert is_categorical_dtype(df["D"].dtype)
+        assert isinstance(df["D"].dtype, CategoricalDtype)
         assert is_interval_dtype(df["D"].cat.categories)
 
         # These go through the Series constructor and so get inferred back
@@ -997,7 +994,6 @@ class TestDataFrameSetItemBooleanMask:
         ids=["dataframe", "array"],
     )
     def test_setitem_boolean_mask(self, mask_type, float_frame):
-
         # Test for issue #18582
         df = float_frame.copy()
         mask = mask_type(df)
@@ -1006,8 +1002,9 @@ class TestDataFrameSetItemBooleanMask:
         result = df.copy()
         result[mask] = np.nan
 
-        expected = df.copy()
-        expected.values[np.array(mask)] = np.nan
+        expected = df.values.copy()
+        expected[np.array(mask)] = np.nan
+        expected = DataFrame(expected, index=df.index, columns=df.columns)
         tm.assert_frame_equal(result, expected)
 
     @pytest.mark.xfail(reason="Currently empty indexers are treated as all False")
@@ -1245,12 +1242,15 @@ class TestDataFrameSetitemCopyViewSemantics:
         df = DataFrame({col: np.zeros(len(labels)) for col in labels}, index=labels)
         values = df._mgr.blocks[0].values
 
-        for label in df.columns:
-            df[label][label] = 1
-
         if not using_copy_on_write:
+            for label in df.columns:
+                df[label][label] = 1
+
             # diagonal values all updated
             assert np.all(values[np.arange(10), np.arange(10)] == 1)
         else:
+            with tm.raises_chained_assignment_error():
+                for label in df.columns:
+                    df[label][label] = 1
             # original dataframe not updated
             assert np.all(values[np.arange(10), np.arange(10)] == 0)

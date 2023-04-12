@@ -170,12 +170,15 @@ dtype : Type name or dict of column -> type, default ``None``
      the default determines the dtype of the columns which are not explicitly
      listed.
 
-use_nullable_dtypes : bool = False
-    Whether or not to use nullable dtypes as default when reading data. If
-    set to True, nullable dtypes are used for all dtypes that have a nullable
-    implementation, even if no nulls are present.
+dtype_backend : {"numpy_nullable", "pyarrow"}, defaults to NumPy backed DataFrames
+  Which dtype_backend to use, e.g. whether a DataFrame should have NumPy
+  arrays, nullable dtypes are used for all dtypes that have a nullable
+  implementation when "numpy_nullable" is set, pyarrow is used for all
+  dtypes if "pyarrow" is set.
 
-    .. versionadded:: 2.0
+  The dtype_backends are still experimential.
+
+  .. versionadded:: 2.0
 
 engine : {``'c'``, ``'python'``, ``'pyarrow'``}
   Parser engine to use. The C and pyarrow engines are faster, while the python engine
@@ -290,6 +293,16 @@ date_parser : function, default ``None``
   values from the columns defined by parse_dates into a single array and pass
   that; and 3) call date_parser once for each row using one or more strings
   (corresponding to the columns defined by parse_dates) as arguments.
+
+  .. deprecated:: 2.0.0
+   Use ``date_format`` instead, or read in as ``object`` and then apply
+   :func:`to_datetime` as-needed.
+date_format : str or dict of column -> format, default ``None``
+   If used in conjunction with ``parse_dates``, will parse dates according to this
+   format. For anything more complex,
+   please read in as ``object`` and then apply :func:`to_datetime` as-needed.
+
+   .. versionadded:: 2.0.0
 dayfirst : boolean, default ``False``
   DD/MM format dates, international and European format.
 cache_dates : boolean, default True
@@ -372,9 +385,9 @@ on_bad_lines : {{'error', 'warn', 'skip'}}, default 'error'
     Specifies what to do upon encountering a bad line (a line with too many fields).
     Allowed values are :
 
-        - 'error', raise an ParserError when a bad line is encountered.
-        - 'warn', print a warning when a bad line is encountered and skip that line.
-        - 'skip', skip bad lines without raising or warning when they are encountered.
+    - 'error', raise an ParserError when a bad line is encountered.
+    - 'warn', print a warning when a bad line is encountered and skip that line.
+    - 'skip', skip bad lines without raising or warning when they are encountered.
 
     .. versionadded:: 1.3.0
 
@@ -465,7 +478,7 @@ worth trying.
 
    os.remove("foo.csv")
 
-Setting ``use_nullable_dtypes=True`` will result in nullable dtypes for every column.
+Setting ``dtype_backend="numpy_nullable"`` will result in nullable dtypes for every column.
 
 .. ipython:: python
 
@@ -474,7 +487,7 @@ Setting ``use_nullable_dtypes=True`` will result in nullable dtypes for every co
    3,4.5,False,b,6,7.5,True,a,12-31-2019,
    """
 
-   df = pd.read_csv(StringIO(data), use_nullable_dtypes=True, parse_dates=["i"])
+   df = pd.read_csv(StringIO(data), dtype_backend="numpy_nullable", parse_dates=["i"])
    df
    df.dtypes
 
@@ -800,7 +813,7 @@ Specifying date columns
 +++++++++++++++++++++++
 
 To better facilitate working with datetime data, :func:`read_csv`
-uses the keyword arguments ``parse_dates`` and ``date_parser``
+uses the keyword arguments ``parse_dates`` and ``date_format``
 to allow users to specify a variety of columns and date/time formats to turn the
 input text data into ``datetime`` objects.
 
@@ -898,33 +911,15 @@ data columns:
 Date parsing functions
 ++++++++++++++++++++++
 
-Finally, the parser allows you to specify a custom ``date_parser`` function to
-take full advantage of the flexibility of the date parsing API:
+Finally, the parser allows you to specify a custom ``date_format``.
+Performance-wise, you should try these methods of parsing dates in order:
 
-.. ipython:: python
+1. If you know the format, use ``date_format``, e.g.:
+   ``date_format="%d/%m/%Y"`` or ``date_format={column_name: "%d/%m/%Y"}``.
 
-   df = pd.read_csv(
-       "tmp.csv", header=None, parse_dates=date_spec, date_parser=pd.to_datetime
-   )
-   df
-
-pandas will try to call the ``date_parser`` function in three different ways. If
-an exception is raised, the next one is tried:
-
-1. ``date_parser`` is first called with one or more arrays as arguments,
-   as defined using ``parse_dates`` (e.g., ``date_parser(['2013', '2013'], ['1', '2'])``).
-
-2. If #1 fails, ``date_parser`` is called with all the columns
-   concatenated row-wise into a single array (e.g., ``date_parser(['2013 1', '2013 2'])``).
-
-Note that performance-wise, you should try these methods of parsing dates in order:
-
-1. If you know the format, use ``pd.to_datetime()``:
-   ``date_parser=lambda x: pd.to_datetime(x, format=...)``.
-
-2. If you have a really non-standard format, use a custom ``date_parser`` function.
-   For optimal performance, this should be vectorized, i.e., it should accept arrays
-   as arguments.
+2. If you different formats for different columns, or want to pass any extra options (such
+   as ``utc``) to ``to_datetime``, then you should read in your data as ``object`` dtype, and
+   then use ``to_datetime``.
 
 
 .. ipython:: python
@@ -952,16 +947,13 @@ an object-dtype column with strings, even with ``parse_dates``.
    df = pd.read_csv(StringIO(content), parse_dates=["a"])
    df["a"]
 
-To parse the mixed-timezone values as a datetime column, pass a partially-applied
-:func:`to_datetime` with ``utc=True`` as the ``date_parser``.
+To parse the mixed-timezone values as a datetime column, read in as ``object`` dtype and
+then call :func:`to_datetime` with ``utc=True``.
 
 .. ipython:: python
 
-   df = pd.read_csv(
-       StringIO(content),
-       parse_dates=["a"],
-       date_parser=lambda col: pd.to_datetime(col, utc=True),
-   )
+   df = pd.read_csv(StringIO(content))
+   df["a"] = pd.to_datetime(df["a"], utc=True)
    df["a"]
 
 
@@ -1001,14 +993,23 @@ way to parse dates is to explicitly set ``format=``.
    )
    df
 
-In the case that you have mixed datetime formats within the same column, you'll need to
-first read it in as an object dtype and then apply :func:`to_datetime` to each element.
+In the case that you have mixed datetime formats within the same column, you can
+pass  ``format='mixed'``
 
 .. ipython:: python
 
    data = io.StringIO("date\n12 Jan 2000\n2000-01-13\n")
    df = pd.read_csv(data)
-   df['date'] = df['date'].apply(pd.to_datetime)
+   df['date'] = pd.to_datetime(df['date'], format='mixed')
+   df
+
+or, if your datetime formats are all ISO8601 (possibly not identically-formatted):
+
+.. ipython:: python
+
+   data = io.StringIO("date\n2020-01-01\n2020-01-01 03:00\n")
+   df = pd.read_csv(data)
+   df['date'] = pd.to_datetime(df['date'], format='ISO8601')
    df
 
 .. ipython:: python
@@ -1997,12 +1998,12 @@ fall back in the following manner:
 * if an object is unsupported it will attempt the following:
 
 
-    * check if the object has defined a ``toDict`` method and call it.
+    - check if the object has defined a ``toDict`` method and call it.
       A ``toDict`` method should return a ``dict`` which will then be JSON serialized.
 
-    * invoke the ``default_handler`` if one was provided.
+    - invoke the ``default_handler`` if one was provided.
 
-    * convert the object to a ``dict`` by traversing its contents. However this will often fail
+    - convert the object to a ``dict`` by traversing its contents. However this will often fail
       with an ``OverflowError`` or give unexpected results.
 
 In general the best approach for unsupported objects or dtypes is to provide a ``default_handler``.
@@ -2069,6 +2070,8 @@ is ``None``. To explicitly force ``Series`` parsing, pass ``typ=series``
 * ``lines`` : reads file as one json object per line.
 * ``encoding`` : The encoding to use to decode py3 bytes.
 * ``chunksize`` : when used in combination with ``lines=True``, return a JsonReader which reads in ``chunksize`` lines per iteration.
+* ``engine``: Either ``"ujson"``, the built-in JSON parser, or ``"pyarrow"`` which dispatches to pyarrow's ``pyarrow.json.read_json``.
+  The ``"pyarrow"`` is only available when ``lines=True``
 
 The parser will raise one of ``ValueError/TypeError/AssertionError`` if the JSON is not parseable.
 
@@ -2089,19 +2092,19 @@ preserve string-like numbers (e.g. '1', '2') in an axes.
 
   Large integer values may be converted to dates if ``convert_dates=True`` and the data and / or column labels appear 'date-like'. The exact threshold depends on the ``date_unit`` specified. 'date-like' means that the column label meets one of the following criteria:
 
-     * it ends with ``'_at'``
-     * it ends with ``'_time'``
-     * it begins with ``'timestamp'``
-     * it is ``'modified'``
-     * it is ``'date'``
+  * it ends with ``'_at'``
+  * it ends with ``'_time'``
+  * it begins with ``'timestamp'``
+  * it is ``'modified'``
+  * it is ``'date'``
 
 .. warning::
 
    When reading JSON data, automatic coercing into dtypes has some quirks:
 
-     * an index can be reconstructed in a different order from serialization, that is, the returned order is not guaranteed to be the same as before serialization
-     * a column that was ``float`` data will be converted to ``integer`` if it can be done safely, e.g. a column of ``1.``
-     * bool columns will be converted to ``integer`` on reconstruction
+   * an index can be reconstructed in a different order from serialization, that is, the returned order is not guaranteed to be the same as before serialization
+   * a column that was ``float`` data will be converted to ``integer`` if it can be done safely, e.g. a column of ``1.``
+   * bool columns will be converted to ``integer`` on reconstruction
 
    Thus there are times where you may want to specify specific dtypes via the ``dtype`` keyword argument.
 
@@ -2250,6 +2253,16 @@ For line-delimited json files, pandas can also return an iterator which reads in
       for chunk in reader:
           print(chunk)
 
+Line-limited json can also be read using the pyarrow reader by specifying ``engine="pyarrow"``.
+
+.. ipython:: python
+
+   from io import BytesIO
+   df = pd.read_json(BytesIO(jsonl.encode()), lines=True, engine="pyarrow")
+   df
+
+.. versionadded:: 2.0.0
+
 .. _io.table_schema:
 
 Table schema
@@ -2357,19 +2370,19 @@ A few notes on the generated table schema:
 
 * The default naming roughly follows these rules:
 
-    * For series, the ``object.name`` is used. If that's none, then the
+    - For series, the ``object.name`` is used. If that's none, then the
       name is ``values``
-    * For ``DataFrames``, the stringified version of the column name is used
-    * For ``Index`` (not ``MultiIndex``), ``index.name`` is used, with a
+    - For ``DataFrames``, the stringified version of the column name is used
+    - For ``Index`` (not ``MultiIndex``), ``index.name`` is used, with a
       fallback to ``index`` if that is None.
-    * For ``MultiIndex``, ``mi.names`` is used. If any level has no name,
+    - For ``MultiIndex``, ``mi.names`` is used. If any level has no name,
       then ``level_<i>`` is used.
 
 ``read_json`` also accepts ``orient='table'`` as an argument. This allows for
 the preservation of metadata such as dtypes and index names in a
 round-trippable manner.
 
-  .. ipython:: python
+.. ipython:: python
 
    df = pd.DataFrame(
        {
@@ -2767,20 +2780,20 @@ parse HTML tables in the top-level pandas io function ``read_html``.
 
 * Benefits
 
-    * |lxml|_ is very fast.
+    - |lxml|_ is very fast.
 
-    * |lxml|_ requires Cython to install correctly.
+    - |lxml|_ requires Cython to install correctly.
 
 * Drawbacks
 
-    * |lxml|_ does *not* make any guarantees about the results of its parse
+    - |lxml|_ does *not* make any guarantees about the results of its parse
       *unless* it is given |svm|_.
 
-    * In light of the above, we have chosen to allow you, the user, to use the
+    - In light of the above, we have chosen to allow you, the user, to use the
       |lxml|_ backend, but **this backend will use** |html5lib|_ if |lxml|_
       fails to parse
 
-    * It is therefore *highly recommended* that you install both
+    - It is therefore *highly recommended* that you install both
       |BeautifulSoup4|_ and |html5lib|_, so that you will still get a valid
       result (provided everything else is valid) even if |lxml|_ fails.
 
@@ -2793,22 +2806,22 @@ parse HTML tables in the top-level pandas io function ``read_html``.
 
 * Benefits
 
-    * |html5lib|_ is far more lenient than |lxml|_ and consequently deals
+    - |html5lib|_ is far more lenient than |lxml|_ and consequently deals
       with *real-life markup* in a much saner way rather than just, e.g.,
       dropping an element without notifying you.
 
-    * |html5lib|_ *generates valid HTML5 markup from invalid markup
+    - |html5lib|_ *generates valid HTML5 markup from invalid markup
       automatically*. This is extremely important for parsing HTML tables,
       since it guarantees a valid document. However, that does NOT mean that
       it is "correct", since the process of fixing markup does not have a
       single definition.
 
-    * |html5lib|_ is pure Python and requires no additional build steps beyond
+    - |html5lib|_ is pure Python and requires no additional build steps beyond
       its own installation.
 
 * Drawbacks
 
-    * The biggest drawback to using |html5lib|_ is that it is slow as
+    - The biggest drawback to using |html5lib|_ is that it is slow as
       molasses.  However consider the fact that many tables on the web are not
       big enough for the parsing algorithm runtime to matter. It is more
       likely that the bottleneck will be in the process of reading the raw
@@ -3198,7 +3211,7 @@ supports parsing such sizeable files using `lxml's iterparse`_ and `etree's iter
 which are memory-efficient methods to iterate through an XML tree and extract specific elements and attributes.
 without holding entire tree in memory.
 
-    .. versionadded:: 1.5.0
+.. versionadded:: 1.5.0
 
 .. _`lxml's iterparse`: https://lxml.de/3.2/parsing.html#iterparse-and-iterwalk
 .. _`etree's iterparse`: https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.iterparse
@@ -3624,11 +3637,6 @@ It is often the case that users will insert columns to do temporary computations
 in Excel and you may not want to read in those columns. ``read_excel`` takes
 a ``usecols`` keyword to allow you to specify a subset of columns to parse.
 
-.. versionchanged:: 1.0.0
-
-Passing in an integer for ``usecols`` will no longer work. Please pass in a list
-of ints from 0 to ``usecols`` inclusive instead.
-
 You can specify a comma-delimited set of Excel columns and ranges as a string:
 
 .. code-block:: python
@@ -3870,8 +3878,6 @@ Similarly, the :func:`~pandas.to_excel` method can write OpenDocument spreadshee
 
 Binary Excel (.xlsb) files
 --------------------------
-
-.. versionadded:: 1.0.0
 
 The :func:`~pandas.read_excel` method can also read binary Excel files
 using the ``pyxlsb`` module. The semantics and features for reading
@@ -4756,7 +4762,7 @@ Selecting coordinates
 ^^^^^^^^^^^^^^^^^^^^^
 
 Sometimes you want to get the coordinates (a.k.a the index locations) of your query. This returns an
-``Int64Index`` of the resulting locations. These coordinates can also be passed to subsequent
+``Index`` of the resulting locations. These coordinates can also be passed to subsequent
 ``where`` operations.
 
 .. ipython:: python
@@ -5308,6 +5314,7 @@ Read from a parquet file.
 Read only certain columns of a parquet file.
 
 .. ipython:: python
+   :okwarning:
 
    result = pd.read_parquet(
        "example_fp.parquet",
@@ -5409,8 +5416,6 @@ The above example creates a partitioned dataset that may look like:
 ORC
 ---
 
-.. versionadded:: 1.0.0
-
 Similar to the :ref:`parquet <io.parquet>` format, the `ORC Format <https://orc.apache.org/>`__ is a binary columnar serialization
 for data frames. It is designed to make reading data frames efficient. pandas provides both the reader and the writer for the
 ORC format, :func:`~pandas.read_orc` and :func:`~pandas.DataFrame.to_orc`. This requires the `pyarrow <https://arrow.apache.org/docs/python/>`__ library.
@@ -5486,11 +5491,8 @@ included in Python's standard library by default.
 You can find an overview of supported drivers for each SQL dialect in the
 `SQLAlchemy docs <https://docs.sqlalchemy.org/en/latest/dialects/index.html>`__.
 
-If SQLAlchemy is not installed, a fallback is only provided for sqlite (and
-for mysql for backwards compatibility, but this is deprecated and will be
-removed in a future version).
-This mode requires a Python database adapter which respect the `Python
-DB-API <https://www.python.org/dev/peps/pep-0249/>`__.
+If SQLAlchemy is not installed, you can use a :class:`sqlite3.Connection` in place of
+a SQLAlchemy engine, connection, or URI string.
 
 See also some :ref:`cookbook examples <cookbook.sql>` for some advanced strategies.
 
@@ -5868,7 +5870,7 @@ If you have an SQLAlchemy description of your database you can express where con
        sa.Column("Col_3", sa.Boolean),
    )
 
-   pd.read_sql(sa.select([data_table]).where(data_table.c.Col_3 is True), engine)
+   pd.read_sql(sa.select(data_table).where(data_table.c.Col_3 is True), engine)
 
 You can combine SQLAlchemy expressions with parameters passed to :func:`read_sql` using :func:`sqlalchemy.bindparam`
 
@@ -5876,7 +5878,7 @@ You can combine SQLAlchemy expressions with parameters passed to :func:`read_sql
 
     import datetime as dt
 
-    expr = sa.select([data_table]).where(data_table.c.Date > sa.bindparam("date"))
+    expr = sa.select(data_table).where(data_table.c.Date > sa.bindparam("date"))
     pd.read_sql(expr, engine, params={"date": dt.datetime(2010, 10, 18)})
 
 
@@ -6034,6 +6036,14 @@ values will have ``object`` data type.
    Setting ``preserve_dtypes=False`` will upcast to the standard pandas data types:
    ``int64`` for all integer types and ``float64`` for floating point data.  By default,
    the Stata data types are preserved when importing.
+
+.. note::
+
+   All :class:`~pandas.io.stata.StataReader` objects, whether created by :func:`~pandas.read_stata`
+   (when using ``iterator=True`` or ``chunksize``) or instantiated by hand, must be used as context
+   managers (e.g. the ``with`` statement).
+   While the :meth:`~pandas.io.stata.StataReader.close` method is available, its use is unsupported.
+   It is not part of the public API and will be removed in with future without warning.
 
 .. ipython:: python
    :suppress:

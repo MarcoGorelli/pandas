@@ -12,16 +12,8 @@ from pandas._libs import (
     lib,
     missing as libmissing,
 )
-from pandas._typing import (
-    Dtype,
-    DtypeObj,
-    type_t,
-)
 
-from pandas.core.dtypes.common import (
-    is_list_like,
-    is_numeric_dtype,
-)
+from pandas.core.dtypes.common import is_list_like
 from pandas.core.dtypes.dtypes import register_extension_dtype
 from pandas.core.dtypes.missing import isna
 
@@ -35,15 +27,18 @@ from pandas.core.arrays.masked import (
 if TYPE_CHECKING:
     import pyarrow
 
-    from pandas._typing import npt
+    from pandas._typing import (
+        Dtype,
+        DtypeObj,
+        npt,
+        type_t,
+    )
 
 
 @register_extension_dtype
 class BooleanDtype(BaseMaskedDtype):
     """
     Extension dtype for boolean data.
-
-    .. versionadded:: 1.0.0
 
     .. warning::
 
@@ -110,14 +105,22 @@ class BooleanDtype(BaseMaskedDtype):
         """
         import pyarrow
 
-        if array.type != pyarrow.bool_():
+        if array.type != pyarrow.bool_() and not pyarrow.types.is_null(array.type):
             raise TypeError(f"Expected array of boolean type, got {array.type} instead")
 
         if isinstance(array, pyarrow.Array):
             chunks = [array]
+            length = len(array)
         else:
             # pyarrow.ChunkedArray
             chunks = array.chunks
+            length = array.length()
+
+        if pyarrow.types.is_null(array.type):
+            mask = np.ones(length, dtype=bool)
+            # No need to init data, since all null
+            data = np.empty(length, dtype=bool)
+            return BooleanArray(data, mask)
 
         results = []
         for arr in chunks:
@@ -174,7 +177,7 @@ def coerce_to_array(
     if isinstance(values, np.ndarray) and values.dtype == np.bool_:
         if copy:
             values = values.copy()
-    elif isinstance(values, np.ndarray) and is_numeric_dtype(values.dtype):
+    elif isinstance(values, np.ndarray) and values.dtype.kind in "iufcb":
         mask_values = isna(values)
 
         values_bool = np.zeros(len(values), dtype=bool)
@@ -246,8 +249,6 @@ class BooleanArray(BaseMaskedArray):
     :func:`pandas.array` specifying ``dtype="boolean"`` (see examples
     below).
 
-    .. versionadded:: 1.0.0
-
     .. warning::
 
        BooleanArray is considered experimental. The implementation and
@@ -288,8 +289,10 @@ class BooleanArray(BaseMaskedArray):
     # The value used to fill '_data' to avoid upcasting
     _internal_fill_value = False
     # Fill values used for any/all
-    _truthy_value = True
-    _falsey_value = False
+    # Incompatible types in assignment (expression has type "bool", base class
+    # "BaseMaskedArray" defined the type as "<typing special form>")
+    _truthy_value = True  # type: ignore[assignment]
+    _falsey_value = False  # type: ignore[assignment]
     _TRUE_VALUES = {"True", "TRUE", "true", "1", "1.0"}
     _FALSE_VALUES = {"False", "FALSE", "false", "0", "0.0"}
 
@@ -345,7 +348,6 @@ class BooleanArray(BaseMaskedArray):
         return coerce_to_array(value, copy=copy)
 
     def _logical_method(self, other, op):
-
         assert op.__name__ in {"or_", "ror_", "and_", "rand_", "xor", "rxor"}
         other_is_scalar = lib.is_scalar(other)
         mask = None

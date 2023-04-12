@@ -1,10 +1,9 @@
 import numpy as np
 import pytest
 
-from pandas.core.dtypes.common import is_categorical_dtype
-
 import pandas as pd
 from pandas import (
+    CategoricalDtype,
     CategoricalIndex,
     DataFrame,
     Index,
@@ -112,7 +111,7 @@ class TestCrosstab:
         # GH 17005
         a = Series([0, 1, 1], index=["a", "b", "c"])
         b = Series([3, 4, 3, 4, 3], index=["a", "b", "c", "d", "f"])
-        c = np.array([3, 4, 3])
+        c = np.array([3, 4, 3], dtype=np.int64)
 
         expected = DataFrame(
             [[1, 0], [1, 1]],
@@ -264,7 +263,6 @@ class TestCrosstab:
         tm.assert_frame_equal(actual, expected)
 
     def test_margin_dropna2(self):
-
         df = DataFrame(
             {"a": [1, np.nan, np.nan, np.nan, 2, np.nan], "b": [3, np.nan, 4, 4, 4, 4]}
         )
@@ -275,7 +273,6 @@ class TestCrosstab:
         tm.assert_frame_equal(actual, expected)
 
     def test_margin_dropna3(self):
-
         df = DataFrame(
             {"a": [1, np.nan, np.nan, np.nan, np.nan, 2], "b": [3, 3, 4, 4, 4, 4]}
         )
@@ -838,7 +835,7 @@ def test_categoricals(a_dtype, b_dtype):
 
     # Verify when categorical does not have all values present
     a.loc[a == 1] = 2
-    a_is_cat = is_categorical_dtype(a.dtype)
+    a_is_cat = isinstance(a.dtype, CategoricalDtype)
     assert not a_is_cat or a.value_counts().loc[1] == 0
     result = crosstab(a, b, margins=True, dropna=False)
     values = [[18, 16, 34], [0, 0, 0], [34, 32, 66], [52, 48, 100]]
