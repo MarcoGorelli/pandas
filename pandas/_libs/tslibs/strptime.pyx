@@ -46,8 +46,8 @@ from numpy cimport (
 
 from pandas._libs.missing cimport checknull_with_nat_and_na
 from pandas._libs.tslibs.conversion cimport (
-    convert_timezone,
     get_datetime64_nanos,
+    parse_pydatetime,
 )
 from pandas._libs.tslibs.nattype cimport (
     NPY_NAT,
@@ -61,14 +61,13 @@ from pandas._libs.tslibs.np_datetime cimport (
     npy_datetimestruct,
     npy_datetimestruct_to_datetime,
     pydate_to_dt64,
-    pydatetime_to_dt64,
     string_to_dts,
 )
 
 import_pandas_datetime()
 
 from pandas._libs.tslibs.np_datetime import OutOfBoundsDatetime
-from pandas._libs.tslibs.timestamps cimport _Timestamp
+
 from pandas._libs.util cimport (
     is_datetime64_object,
     is_float_object,
@@ -175,7 +174,7 @@ def array_strptime(
         Py_ssize_t i, n = len(values)
         npy_datetimestruct dts
         int64_t[::1] iresult
-        object[::1] result_timezone
+        object result_timezone
         int year, month, day, minute, hour, second, weekday, julian
         int week_of_year, week_of_year_start, parse_code, ordinal
         int iso_week, iso_year
@@ -184,9 +183,6 @@ def array_strptime(
         bint is_raise = errors=="raise"
         bint is_ignore = errors=="ignore"
         bint is_coerce = errors=="coerce"
-        bint found_naive = False
-        bint found_tz = False
-        tzinfo tz_out = None
         bint iso_format = format_is_iso(fmt)
         NPY_DATETIMEUNIT out_bestunit
         int out_local = 0, out_tzoffset = 0
@@ -262,7 +258,7 @@ def array_strptime(
 
     result = np.empty(n, dtype="M8[ns]")
     iresult = result.view("i8")
-    result_timezone = np.empty(n, dtype="object")
+    result_timezone = None
 
     dts.us = dts.ps = dts.as = 0
 
@@ -277,23 +273,12 @@ def array_strptime(
                 iresult[i] = NPY_NAT
                 continue
             elif PyDateTime_Check(val):
-                if val.tzinfo is not None:
-                    found_tz = True
-                else:
-                    found_naive = True
-                tz_out = convert_timezone(
-                    val.tzinfo,
-                    tz_out,
-                    found_naive,
-                    found_tz,
-                    utc,
-                )
-                if isinstance(val, _Timestamp):
-                    iresult[i] = val.tz_localize(None).as_unit("ns")._value
-                else:
-                    iresult[i] = pydatetime_to_dt64(val.replace(tzinfo=None), &dts)
-                    check_dts_bounds(&dts)
-                result_timezone[i] = val.tzinfo
+                iresult[i] = parse_pydatetime(val, &dts, True)
+                check_dts_bounds(&dts)
+                if result_timezone is None:
+                    result_timezone = val.tzinfo
+                elif result_timezone != val.tzinfo and not utc:
+                    raise ValueError("Can't parse mixed timezones with utc=False")
                 continue
             elif PyDate_Check(val):
                 iresult[i] = pydate_to_dt64(val, &dts)
@@ -301,6 +286,8 @@ def array_strptime(
                 continue
             elif is_datetime64_object(val):
                 iresult[i] = get_datetime64_nanos(val, NPY_FR_ns)
+                if result_timezone is not None and not utc:
+                    raise ValueError("Can't parse mixed timezones with utc=False")
                 continue
             elif (
                     (is_integer_object(val) or is_float_object(val))
@@ -330,10 +317,12 @@ def array_strptime(
                     # since we store the total_seconds of
                     # dateutil.tz.tzoffset objects
                     tz = timezone(timedelta(minutes=out_tzoffset))
-                    result_timezone[i] = tz
+                    if result_timezone is None:
+                        result_timezone = tz
+                    elif result_timezone != tz and not utc:
+                        raise ValueError("Can't parse mixed timezones with utc=False")
                     out_local = 0
-                    out_tzoffset = 0
-                iresult[i] = value
+                iresult[i] = value - <int64_t>out_tzoffset * 60 * 1_000_000_000
                 check_dts_bounds(&dts)
                 continue
 
@@ -464,8 +453,9 @@ def array_strptime(
                         week_of_year_start = 0
                 elif parse_code == 17:
                     tz = pytz.timezone(found_dict["Z"])
+                    out_tzoffset = 0
                 elif parse_code == 19:
-                    tz = parse_timezone_directive(found_dict["z"])
+                    tz = parse_timezone_directive(found_dict["z"], &out_tzoffset)
                 elif parse_code == 20:
                     iso_year = int(found_dict["G"])
                 elif parse_code == 21:
@@ -512,10 +502,15 @@ def array_strptime(
             dts.us = us
             dts.ps = ns * 1000
 
-            iresult[i] = npy_datetimestruct_to_datetime(NPY_FR_ns, &dts)
+            if result_timezone is None:
+                result_timezone = tz
+            elif result_timezone != tz and not utc:
+                raise ValueError("Can't parse mixed timezones with utc=False")
+            iresult[i] = (
+                npy_datetimestruct_to_datetime(NPY_FR_ns, &dts)
+                - <int64_t>out_tzoffset*60*1_000_000_000
+            )
             check_dts_bounds(&dts)
-
-            result_timezone[i] = tz
 
         except (ValueError, OutOfBoundsDatetime) as ex:
             ex.args = (
@@ -532,9 +527,8 @@ def array_strptime(
                 continue
             elif is_raise:
                 raise
-            return values, []
-
-    return result, result_timezone.base
+            return values, None
+    return result, result_timezone
 
 
 class TimeRE(_TimeRE):
@@ -657,7 +651,7 @@ cdef (int, int) _calc_julian_from_V(int iso_year, int iso_week, int iso_weekday)
     return iso_year, ordinal
 
 
-cdef tzinfo parse_timezone_directive(str z):
+cdef tzinfo parse_timezone_directive(str z, int *offset_minutes):
     """
     Parse the '%z' directive and return a datetime.timezone object.
 
@@ -701,4 +695,5 @@ cdef tzinfo parse_timezone_directive(str z):
     total_minutes = ((hours * 60) + minutes + (seconds // 60) +
                      (microseconds // 60_000_000))
     total_minutes = -total_minutes if z.startswith("-") else total_minutes
+    offset_minutes[0] = total_minutes
     return timezone(timedelta(minutes=total_minutes))

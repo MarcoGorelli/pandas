@@ -313,7 +313,7 @@ def _convert_and_box_cache(
 
 
 def _return_parsed_timezone_results(
-    result: np.ndarray, timezones, utc: bool, name: str
+    result: np.ndarray, timezone, utc: bool, name: str
 ) -> Index:
     """
     Return results from array_strptime if a %z or %Z directive was passed.
@@ -333,18 +333,10 @@ def _return_parsed_timezone_results(
     -------
     tz_result : Index-like of parsed dates with timezone
     """
-    tz_results = np.empty(len(result), dtype=object)
-    for zone in unique(timezones):
-        mask = timezones == zone
-        dta = DatetimeArray(result[mask]).tz_localize(zone)
-        if utc:
-            if dta.tzinfo is None:
-                dta = dta.tz_localize("utc")
-            else:
-                dta = dta.tz_convert("utc")
-        tz_results[mask] = dta
-
-    return Index(tz_results, name=name)
+    dta = DatetimeArray(result).tz_localize("UTC")
+    if not utc:
+        dta = dta.tz_convert(timezone)
+    return Index(dta, name=name)
 
 
 def _convert_listlike_datetimes(
@@ -479,9 +471,9 @@ def _array_strptime_with_fallback(
     """
     Call array_strptime, with fallback behavior depending on 'errors'.
     """
-    result, timezones = array_strptime(arg, fmt, exact=exact, errors=errors, utc=utc)
-    if any(tz is not None for tz in timezones):
-        return _return_parsed_timezone_results(result, timezones, utc, name)
+    result, timezone = array_strptime(arg, fmt, exact=exact, errors=errors, utc=utc)
+    if timezone is not None:
+        return _return_parsed_timezone_results(result, timezone, utc, name)
 
     return _box_as_indexlike(result, utc=utc, name=name)
 
