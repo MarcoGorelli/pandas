@@ -128,6 +128,47 @@ timezone instead of returning a naive result; it still drops nanoseconds, and
 still raises ``ValueError`` for a ``fold=1`` (DST-ambiguous) timestamp
 (:issue:`31930`, :issue:`45307`).
 
+.. _whatsnew_310.notable_bug_fixes.isin_na_propagation:
+
+:meth:`~Series.isin` now follows three-valued logic for nullable dtypes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For nullable dtypes (:class:`Int64Dtype` and other masked numeric/boolean
+dtypes, the ``pyarrow``-backed numeric/boolean dtypes, and the ``pd.NA``
+variant of :class:`StringDtype`), :meth:`Series.isin`, :meth:`Index.isin`,
+and :meth:`DataFrame.isin` now propagate ``pd.NA`` following the same
+three-valued logic already used by ``==`` and other comparisons: an element
+that is itself ``NA`` can't be ruled in or out, so the result is ``NA``
+instead of ``False``; likewise, a non-``NA`` element that doesn't exactly
+match anything in the target values is ``NA`` (rather than ``False``) if the
+target values contain an ``NA``, since it might be a match.
+
+.. code-block:: ipython
+
+    In [1]: s = pd.Series([1, 2, pd.NA], dtype="Int64")
+
+    In [2]: s.isin([1, pd.NA])
+    Out[2]:
+    0     True
+    1     <NA>
+    2     <NA>
+    dtype: boolean
+
+Previously, an element that was itself ``NA`` matched only when the target
+values contained an ``NA`` (and otherwise gave ``False``), and other
+elements were never turned into ``NA``. As a related consequence,
+:meth:`DataFrame.drop` and :meth:`Series.drop` (with a non-unique axis) no
+longer drop a row whose membership is merely uncertain — including a row
+whose own value is ``NA`` being dropped by an explicit ``NA`` in ``labels``,
+which previously worked precisely because of the old "``NA`` always matches
+an ``NA`` target" convention.
+
+The default, NaN-semantics ``str`` dtype (the dtype :class:`Series` and
+:class:`Index` infer for Python strings by default) is unaffected and keeps
+returning a plain ``bool`` result with no propagation, since it is designed
+as a low-friction, NaN-based compatibility layer for ``object`` dtype rather
+than a fully nullable dtype (:issue:`31990`).
+
 .. ---------------------------------------------------------------------------
 .. _whatsnew_310.api_breaking:
 

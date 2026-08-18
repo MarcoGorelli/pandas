@@ -181,15 +181,16 @@ class TestSeriesIsIn:
         "data,values,expected",
         [
             ([0, 1, 0], [1], [False, True, False]),
-            ([0, 1, 0], [1, pd.NA], [False, True, False]),
-            ([0, pd.NA, 0], [1, 0], [True, False, True]),
-            ([0, 1, pd.NA], [1, pd.NA], [False, True, True]),
-            ([0, 1, pd.NA], [1, np.nan], [False, True, False]),
-            ([0, pd.NA, pd.NA], [np.nan, pd.NaT, None], [False, False, False]),
+            ([0, 1, 0], [1, pd.NA], [pd.NA, True, pd.NA]),
+            ([0, pd.NA, 0], [1, 0], [True, pd.NA, True]),
+            ([0, 1, pd.NA], [1, pd.NA], [pd.NA, True, pd.NA]),
+            ([0, 1, pd.NA], [1, np.nan], [pd.NA, True, pd.NA]),
+            ([0, pd.NA, pd.NA], [np.nan, pd.NaT, None], [pd.NA, pd.NA, pd.NA]),
         ],
     )
     def test_isin_masked_types(self, dtype, data, values, expected):
-        # GH#42405
+        # GH#42405, GH#31990: isin follows three-valued logic for nullable
+        # dtypes, matching == and other comparisons
         ser = Series(data, dtype=dtype)
 
         result = ser.isin(values)
@@ -214,11 +215,16 @@ def test_isin_large_series_mixed_dtypes_and_nan(monkeypatch):
 @pytest.mark.parametrize(
     "dtype, data, values, expected",
     [
-        ("boolean", [pd.NA, False, True], [False, pd.NA], [True, True, False]),
-        ("Int64", [pd.NA, 2, 1], [1, pd.NA], [True, False, True]),
-        ("boolean", [pd.NA, False, True], [pd.NA, True, "a", 20], [True, False, True]),
+        ("boolean", [pd.NA, False, True], [False, pd.NA], [pd.NA, True, pd.NA]),
+        ("Int64", [pd.NA, 2, 1], [1, pd.NA], [pd.NA, pd.NA, True]),
+        (
+            "boolean",
+            [pd.NA, False, True],
+            [pd.NA, True, "a", 20],
+            [pd.NA, pd.NA, True],
+        ),
         ("boolean", [pd.NA, False, True], [], [False, False, False]),
-        ("Float64", [20.0, 30.0, pd.NA], [pd.NA], [False, False, True]),
+        ("Float64", [20.0, 30.0, pd.NA], [pd.NA], [pd.NA, pd.NA, pd.NA]),
     ],
 )
 def test_isin_large_series_and_pdNA(dtype, data, values, expected, monkeypatch):
@@ -238,16 +244,16 @@ def test_isin_large_series_and_pdNA(dtype, data, values, expected, monkeypatch):
 @pytest.mark.parametrize(
     "dtype, data, values, expected",
     [
-        ("int64[pyarrow]", [1, None], [1, pd.NA], [True, True]),
-        ("binary[pyarrow]", [None, b"\xe3"], [pd.NA, b"\xe3"], [True, True]),
+        ("int64[pyarrow]", [1, None], [1, pd.NA], [True, pd.NA]),
+        ("binary[pyarrow]", [None, b"\xe3"], [pd.NA, b"\xe3"], [pd.NA, True]),
     ],
 )
 def test_isin_arrow_dtype_with_na_value(dtype, data, values, expected):
-    # GH#63304
+    # GH#63304, GH#31990
     pytest.importorskip("pyarrow")
 
     result = Series(data, dtype=dtype).isin(values)
-    expected = Series(expected)
+    expected = Series(expected, dtype="bool[pyarrow]")
 
     tm.assert_series_equal(result, expected)
 

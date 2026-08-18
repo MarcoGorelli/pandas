@@ -542,24 +542,30 @@ class TestDataFrameDrop:
     @pytest.mark.parametrize("idx, level", [(["a", "b"], 0), (["a"], None)])
     def test_drop_index_ea_dtype(self, any_numeric_ea_dtype, idx, level):
         # GH#45860
+        # GH#31990: isin follows three-valued logic, so a row is only
+        # dropped when it's a definite (non-NA) match; rows whose own value
+        # is NA, or that don't exactly match anything given an NA elsewhere
+        # in the drop labels, can't be ruled a match and are kept.
         df = DataFrame(
             {"a": [1, 2, 2, pd.NA], "b": 100}, dtype=any_numeric_ea_dtype
         ).set_index(idx)
         result = df.drop(Index([2, pd.NA]), level=level)
         expected = DataFrame(
-            {"a": [1], "b": 100}, dtype=any_numeric_ea_dtype
+            {"a": [1, pd.NA], "b": 100}, dtype=any_numeric_ea_dtype
         ).set_index(idx)
         tm.assert_frame_equal(result, expected)
 
     def test_drop_index_arrow_binary_dtype_na(self):
         # GH#63304
+        # GH#31990: a row whose own value is NA can't be ruled a definite
+        # match for an NA drop-label, so isin is NA and the row is kept
+        # (drop() only removes definite matches).
         pytest.importorskip("pyarrow")
 
         idx = Index([None, b"\xe3", b"\xe3"], dtype="binary[pyarrow]", name="bytes_col")
         df = DataFrame(index=idx)
 
         result = df.drop(index=[pd.NA])
-        idx = Index([b"\xe3", b"\xe3"], dtype="binary[pyarrow]", name="bytes_col")
         expected = DataFrame(index=idx)
         tm.assert_frame_equal(result, expected)
 

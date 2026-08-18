@@ -1751,16 +1751,34 @@ class ArrowExtensionArray(
 
         return super().fillna(value=value, limit=limit, copy=copy)
 
-    def isin(self, values: ArrayLike) -> npt.NDArray[np.bool_]:
+    def isin(self, values: ArrayLike) -> ArrowExtensionArray:
         # short-circuit to return all False array.
         if not len(values):
-            return np.zeros(len(self), dtype=bool)
+            return ArrowExtensionArray(pa.array(np.zeros(len(self), dtype=bool)))
 
         value_set = self._box_pa(values)
-        result = pc.is_in(self._pa_array, value_set=value_set)
-        # pyarrow 2.0.0 returned nulls, so we explicitly specify dtype to convert nulls
-        # to False
-        return np.array(result, dtype=np.bool_)
+        if pa.types.is_null(value_set.type):
+            # e.g. values=[None]: pyarrow infers an all-null array as type
+            # null, which is_in rejects as incompatible with self's type.
+            value_set = value_set.cast(self._pa_array.type)
+        # skip_nulls=True: an element that is itself null can never definitely
+        # match, so treat it as unmatched here and let the null-propagation
+        # below decide whether "unmatched" should really mean NA.
+        result = pc.is_in(self._pa_array, value_set=value_set, skip_nulls=True)
+
+        # Follow three-valued logic, as with other operations that produce a
+        # boolean result from nullable data (e.g. comparisons): an element that
+        # is itself NA can't be ruled in or out, so it's always NA; an element
+        # that doesn't exactly match anything in `values` is NA (rather than
+        # False) if `values` contains an NA, since it might be a match. Because
+        # skip_nulls=True above guarantees own-NA rows are already False in
+        # `result`, both cases collapse to turning every False into null.
+        if pc.any(pc.is_null(value_set)).as_py():
+            result = pc.if_else(result, result, None)
+        else:
+            result = pc.if_else(pc.is_null(self._pa_array), None, result)
+
+        return ArrowExtensionArray(result)
 
     def _hash_pandas_object(
         self, *, encoding: str, hash_key: str, categorize: bool

@@ -965,8 +965,18 @@ class TestIndex:
         # GH#55821
         index = Index(["a", "b"], dtype=string_dtype_no_object)
         result = index.isin([None])
-        expected = np.array([False, False])
-        tm.assert_numpy_array_equal(result, expected)
+        if string_dtype_no_object.na_value is pd.NA:
+            # GH#31990: None in the target values means "a"/"b" can't be
+            # ruled out, so isin follows three-valued logic and is NA
+            if string_dtype_no_object.storage == "python":
+                dtype = "boolean"
+            else:
+                dtype = "bool[pyarrow]"
+            expected = pd.array([pd.NA, pd.NA], dtype=dtype)
+            tm.assert_extension_array_equal(result, expected)
+        else:
+            expected = np.array([False, False])
+            tm.assert_numpy_array_equal(result, expected)
 
     @pytest.mark.parametrize(
         "values",

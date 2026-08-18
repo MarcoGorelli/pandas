@@ -4856,7 +4856,9 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
 
             if isinstance(mask.dtype, ExtensionDtype):
                 # GH#45860
-                mask = mask.to_numpy(dtype=bool)
+                # GH#31990: an NA here means isin() couldn't rule the label
+                # out, so conservatively keep (don't drop) that row.
+                mask = mask.to_numpy(dtype=bool, na_value=True)
 
             indexer = mask.nonzero()[0]
             new_axis = axis.take(indexer)

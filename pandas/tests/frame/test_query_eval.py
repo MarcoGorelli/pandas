@@ -1668,7 +1668,14 @@ class TestDataFrameQueryBacktickQuoting:
         # GH#50261
         df = DataFrame({"a": [1, 2]}, dtype=dtype)
         ref = {2}  # noqa: F841
-        warning = RuntimeWarning if dtype == "Int64" and NUMEXPR_INSTALLED else None
+        # GH#31990: isin() on any nullable dtype (numpy- or pyarrow-backed)
+        # now returns an extension array, so numexpr falls back to python
+        # for either.
+        warning = (
+            RuntimeWarning
+            if dtype in ("Int64", "int64[pyarrow]") and NUMEXPR_INSTALLED
+            else None
+        )
         with tm.assert_produces_warning(warning):
             result = df.query("a in @ref")
         expected = DataFrame({"a": [2]}, index=range(1, 2), dtype=dtype)

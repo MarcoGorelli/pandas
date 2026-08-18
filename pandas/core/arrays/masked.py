@@ -1249,16 +1249,18 @@ class BaseMaskedArray(OpsMixin, ExtensionArray):
         values_arr = np.asarray(values)
         result = isin(self._data, values_arr)
 
-        if self._hasna:
-            values_have_NA = values_arr.dtype == object and any(
-                val is self.dtype.na_value for val in values_arr
-            )
-
-            # For now, NA does not propagate so set result according to presence of NA,
-            # see https://github.com/pandas-dev/pandas/pull/38379 for some discussion
-            result[self._mask] = values_have_NA
-
+        # Follow three-valued logic, as with other operations that produce a
+        # boolean result from nullable data (e.g. comparisons): an element that
+        # is itself NA can't be ruled in or out, so it's always NA (unless
+        # `values` is empty, in which case membership is vacuously False); an
+        # element that doesn't exactly match anything in `values` is NA (rather
+        # than False) if `values` contains an NA, since it might be a match.
         mask = np.zeros(self._data.shape, dtype=bool)
+        if len(values_arr):
+            mask |= self._mask
+            if isna(values_arr).any():
+                mask |= ~result & ~self._mask
+
         return BooleanArray(result, mask, copy=False)
 
     def copy(self) -> Self:

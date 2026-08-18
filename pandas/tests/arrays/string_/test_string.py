@@ -540,52 +540,77 @@ def test_to_numpy_readonly(dtype):
         assert result.flags.writeable
 
 
+def _isin_bool_dtype(dtype):
+    # dtype of the boolean result of isin() for a given string dtype:
+    # the NaN-semantics ("str") variant keeps a plain bool, while the
+    # NA-semantics ("string") variant follows three-valued logic and
+    # returns a nullable boolean, see GH#31990
+    if dtype.na_value is np.nan:
+        return None
+    return "boolean" if dtype.storage == "python" else "bool[pyarrow]"
+
+
 def test_isin(dtype, fixed_now_ts):
     s = pd.Series(["a", "b", None], dtype=dtype)
+    isin_dtype = _isin_bool_dtype(dtype)
+    # NA-semantics ("string"): three-valued logic, own-NA row is always NA.
+    # NaN-semantics ("str"): legacy behavior, own-NA row matches iff the
+    # target values contain an NA, other rows never turn into NA.
+    own_na_no_target_na = pd.NA if isin_dtype is not None else False
+    own_na_with_target_na = pd.NA if isin_dtype is not None else True
+    other_na = pd.NA if isin_dtype is not None else False
 
     result = s.isin(["a", "c"])
-    expected = pd.Series([True, False, False])
+    expected = pd.Series([True, False, own_na_no_target_na], dtype=isin_dtype)
     tm.assert_series_equal(result, expected)
 
     result = s.isin(["a", pd.NA])
-    expected = pd.Series([True, False, True])
+    expected = pd.Series([True, other_na, own_na_with_target_na], dtype=isin_dtype)
     tm.assert_series_equal(result, expected)
 
     result = s.isin([])
-    expected = pd.Series([False, False, False])
+    expected = pd.Series([False, False, False], dtype=isin_dtype)
     tm.assert_series_equal(result, expected)
 
     result = s.isin(["a", fixed_now_ts])
-    expected = pd.Series([True, False, False])
+    expected = pd.Series([True, False, own_na_no_target_na], dtype=isin_dtype)
     tm.assert_series_equal(result, expected)
 
     result = s.isin([fixed_now_ts])
-    expected = pd.Series([False, False, False])
+    expected = pd.Series([False, False, False], dtype=isin_dtype)
     tm.assert_series_equal(result, expected)
 
 
 def test_isin_string_array(dtype, dtype2):
     s = pd.Series(["a", "b", None], dtype=dtype)
+    isin_dtype = _isin_bool_dtype(dtype)
+    own_na_no_target_na = pd.NA if isin_dtype is not None else False
+    own_na_with_target_na = pd.NA if isin_dtype is not None else True
+    other_na = pd.NA if isin_dtype is not None else False
 
     result = s.isin(pd.array(["a", "c"], dtype=dtype2))
-    expected = pd.Series([True, False, False])
+    expected = pd.Series([True, False, own_na_no_target_na], dtype=isin_dtype)
     tm.assert_series_equal(result, expected)
 
     result = s.isin(pd.array(["a", None], dtype=dtype2))
-    expected = pd.Series([True, False, True])
+    expected = pd.Series([True, other_na, own_na_with_target_na], dtype=isin_dtype)
     tm.assert_series_equal(result, expected)
 
 
 def test_isin_arrow_string_array(dtype):
     pa = pytest.importorskip("pyarrow")
     s = pd.Series(["a", "b", None], dtype=dtype)
+    isin_dtype = _isin_bool_dtype(dtype)
+    own_na_no_target_na = pd.NA if isin_dtype is not None else False
+    own_na_with_target_na = pd.NA if isin_dtype is not None else True
+    other_na = pd.NA if isin_dtype is not None else False
 
     result = s.isin(pd.array(["a", "c"], dtype=pd.ArrowDtype(pa.string())))
-    expected = pd.Series([True, False, False])
+    expected = pd.Series([True, False, own_na_no_target_na], dtype=isin_dtype)
     tm.assert_series_equal(result, expected)
 
     result = s.isin(pd.array(["a", None], dtype=pd.ArrowDtype(pa.string())))
-    expected = pd.Series([True, False, True])
+    expected = pd.Series([True, other_na, own_na_with_target_na], dtype=isin_dtype)
     tm.assert_series_equal(result, expected)
 
 

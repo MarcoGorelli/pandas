@@ -352,23 +352,30 @@ class ArrowStringArray(ObjectStringArrayMixin, ArrowExtensionArray, BaseStringAr
                 )
         return super()._validate_setitem_value(value)
 
-    def isin(self, values: ArrayLike) -> npt.NDArray[np.bool_]:
+    def isin(self, values: ArrayLike) -> npt.NDArray[np.bool_] | ArrowExtensionArray:
+        # Only string/null-typed targets can ever match; drop the rest so
+        # ArrowExtensionArray.isin (which handles the empty-set short-circuit
+        # and NA propagation) doesn't have to reason about mismatched types.
         value_set = [
             pa_scalar.as_py()
             for pa_scalar in [pa.scalar(value, from_pandas=True) for value in values]
             if pa_scalar.type in (pa.string(), pa.null(), pa.large_string())
         ]
 
-        # short-circuit to return all False array.
-        if not value_set:
-            return np.zeros(len(self), dtype=bool)
+        if self.dtype.na_value is not libmissing.NA:
+            # NaN-semantics string dtype ("str"): kept as a low-friction,
+            # NaN-based compatibility layer for object dtype, so it doesn't
+            # follow the three-valued logic in ArrowExtensionArray.isin.
+            if not value_set:
+                return np.zeros(len(self), dtype=bool)
+            result = pc.is_in(
+                self._pa_array, value_set=pa.array(value_set, type=self._pa_array.type)
+            )
+            # pyarrow 2.0.0 returned nulls, so we explicitly specify dtype to
+            # convert nulls to False
+            return np.array(result, dtype=np.bool_)
 
-        result = pc.is_in(
-            self._pa_array, value_set=pa.array(value_set, type=self._pa_array.type)
-        )
-        # pyarrow 2.0.0 returned nulls, so we explicitly specify dtype to convert nulls
-        # to False
-        return np.array(result, dtype=np.bool_)
+        return super().isin(value_set)
 
     def astype(self, dtype, copy: bool = True):
         dtype = pandas_dtype(dtype)

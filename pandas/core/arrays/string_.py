@@ -902,7 +902,7 @@ class StringArray(BaseStringArray, NumpyExtensionArray):  # type: ignore[misc]
         # base class implementation that uses __setitem__
         return ExtensionArray._where(self, mask, value)
 
-    def isin(self, values: ArrayLike) -> npt.NDArray[np.bool_]:
+    def isin(self, values: ArrayLike) -> npt.NDArray[np.bool_] | BooleanArray:
         if isinstance(values, BaseStringArray) or (
             isinstance(values, ExtensionArray) and is_string_dtype(values.dtype)
         ):
@@ -913,12 +913,32 @@ class StringArray(BaseStringArray, NumpyExtensionArray):  # type: ignore[misc]
                     [val for val in values if isinstance(val, str) or isna(val)],
                     dtype=object,
                 )
-                if not len(values):
-                    return np.zeros(self.shape, dtype=bool)
 
             values = self._from_sequence(values, dtype=self.dtype)
 
-        return isin(np.asarray(self), np.asarray(values))
+        result = isin(np.asarray(self), np.asarray(values))
+
+        if self.dtype.na_value is not libmissing.NA:
+            # NaN-semantics string dtype ("str"): kept as a low-friction,
+            # NaN-based compatibility layer for object dtype, so it doesn't
+            # follow the three-valued logic below.
+            return result
+
+        from pandas.core.arrays import BooleanArray
+
+        # Follow three-valued logic, as with other operations that produce a
+        # boolean result from nullable data (e.g. comparisons): an element that
+        # is itself NA can't be ruled in or out, so it's always NA (unless
+        # `values` is empty, in which case membership is vacuously False); an
+        # element that doesn't exactly match anything in `values` is NA (rather
+        # than False) if `values` contains an NA, since it might be a match.
+        own_mask = self.isna()
+        mask = np.zeros(len(self), dtype=bool)
+        if len(values):
+            mask |= own_mask
+            if isna(values).any():
+                mask |= ~result & ~own_mask
+        return BooleanArray(result, mask, copy=False)
 
     def astype(self, dtype, copy: bool = True):
         dtype = pandas_dtype(dtype)
